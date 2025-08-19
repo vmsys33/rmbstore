@@ -78,9 +78,9 @@
                         <div class="col-md-6">
                             <p><strong>Name:</strong> <?= $product['product_name'] ?></p>
                             <p><strong>SKU:</strong> <?= $product['sku'] ?></p>
-                            <p><strong>Price:</strong> $<?= number_format($product['price'], 2) ?></p>
+                            <p><strong>Price:</strong> <?= $currencySymbol ?><?= number_format($product['price'], 2) ?></p>
                             <?php if (!empty($product['sale_price']) && $product['sale_price'] < $product['price']): ?>
-                                <p><strong>Sale Price:</strong> $<?= number_format($product['sale_price'], 2) ?></p>
+                                <p><strong>Sale Price:</strong> <?= $currencySymbol ?><?= number_format($product['sale_price'], 2) ?></p>
                             <?php endif; ?>
                             <p><strong>Stock:</strong> <?= $product['stock_quantity'] ?></p>
                         </div>

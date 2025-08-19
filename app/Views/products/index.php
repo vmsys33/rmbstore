@@ -65,10 +65,10 @@
                         </td>
                         <td>
                             <span class="fw-bold text-success">
-                                $<?= number_format($product['price'], 2) ?>
+                                <?= $currencySymbol ?><?= number_format($product['price'], 2) ?>
                             </span>
                             <?php if (!empty($product['sale_price']) && $product['sale_price'] < $product['price']): ?>
-                                <br><small class="text-danger">Sale: $<?= number_format($product['sale_price'], 2) ?></small>
+                                <br><small class="text-danger">Sale: <?= $currencySymbol ?><?= number_format($product['sale_price'], 2) ?></small>
                             <?php endif; ?>
                         </td>
                         <td>

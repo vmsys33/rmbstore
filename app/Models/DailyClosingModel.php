@@ -167,4 +167,19 @@ class DailyClosingModel extends Model
             'avg_daily_transactions' => 0
         ];
     }
+    
+    /**
+     * Get top 3 daily closings by total sales
+     */
+    public function getTopDailyClosings($limit = 3)
+    {
+        return $this->select('
+            daily_closings.*,
+            CONCAT(users.first_name, " ", users.last_name) as closed_by_name
+        ')
+        ->join('users', 'users.id = daily_closings.closed_by', 'left')
+        ->orderBy('total_sales', 'DESC')
+        ->limit($limit)
+        ->findAll();
+    }
 }

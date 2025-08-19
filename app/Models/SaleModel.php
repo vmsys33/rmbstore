@@ -219,4 +219,5 @@ class SaleModel extends Model
                    ->orderBy('created_at', 'DESC')
                    ->findAll();
     }
+    
 }

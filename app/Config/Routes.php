@@ -100,6 +100,13 @@ $routes->group('admin', ['filter' => 'adminAuth'], function($routes) {
     
     $routes->get('pos/get-sale-details', 'PosController::getSaleDetails', ['as' => 'pos.getSaleDetails']);
     $routes->get('pos/print-receipt', 'PosController::printReceipt', ['as' => 'pos.printReceipt']);
+    
+    // Sales Summary Routes
+    $routes->get('sales-summary', 'SalesSummaryController::index', ['as' => 'sales-summary']);
+    $routes->get('sales-summary/getData', 'SalesSummaryController::getData', ['as' => 'sales-summary.getData']);
+    $routes->get('sales-summary/getSalesDetails/(:any)', 'SalesSummaryController::getSalesDetails/$1', ['as' => 'sales-summary.getSalesDetails']);
+    $routes->get('sales-summary/getStats', 'SalesSummaryController::getStats', ['as' => 'sales-summary.getStats']);
+    $routes->get('sales-summary/exportCsv', 'SalesSummaryController::exportCsv', ['as' => 'sales-summary.exportCsv']);
 });
 
 $routes->group('features', function($routes) {

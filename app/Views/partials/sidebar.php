@@ -109,6 +109,25 @@
                     </a>
                 </li>
 
+                <li class="geex-sidebar__menu__item">
+                    <a href="<?= site_url('admin/sales-summary') ?>" class="geex-sidebar__menu__link">
+                        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <g clip-path="url(#clip0_1139_9720)">
+                                <path d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM19 19H5V5H19V19Z" fill="#B9BBBD"/>
+                                <path d="M7 7H17V9H7V7Z" fill="#B9BBBD"/>
+                                <path d="M7 11H17V13H7V11Z" fill="#B9BBBD"/>
+                                <path d="M7 15H13V17H7V15Z" fill="#B9BBBD"/>
+                            </g>
+                            <defs>
+                                <clipPath id="clip0_1139_9720">
+                                    <rect width="22" height="22" fill="white" />
+                                </clipPath>
+                            </defs>
+                        </svg>
+                        <span>Sales Summary</span>
+                    </a>
+                </li>
+
 
 
                 <li class="geex-sidebar__menu__item">

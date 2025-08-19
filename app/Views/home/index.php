@@ -221,12 +221,123 @@
                         <?php else: ?>
                             <div class="text-center py-4">
                                 <div class="mb-3">
-                                    <i class="uil uil-receipt text-muted" style="font-size: 3rem;"></i>
+                                    <div class="mb-3">
+                                        <i class="uil uil-receipt text-muted" style="font-size: 3rem;"></i>
+                                    </div>
+                                    <h5 class="text-muted">No Recent Sales</h5>
+                                    <p class="text-muted mb-3">Start making sales to see them here</p>
+                                    <a href="<?= base_url('admin/pos') ?>" class="btn btn-primary">
+                                        <i class="uil uil-plus"></i> Start First Sale
+                                    </a>
                                 </div>
-                                <h5 class="text-muted">No Recent Sales</h5>
-                                <p class="text-muted mb-3">Start making sales to see them here</p>
-                                <a href="<?= base_url('admin/pos') ?>" class="btn btn-primary">
-                                    <i class="uil uil-plus"></i> Start First Sale
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Daily Closings Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent border-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="uil uil-trophy text-warning me-2"></i>
+                                Top 3 Daily Sales Summary
+                            </h5>
+                            <a href="<?= base_url('admin/sales-summary') ?>" class="btn btn-sm btn-warning">
+                                <i class="uil uil-chart"></i> View Full Report
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <?php if (!empty($topDailyClosings)): ?>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Rank</th>
+                                            <th>Date</th>
+                                            <th>Total Sales</th>
+                                            <th>Transactions</th>
+                                            <th>Items Sold</th>
+                                            <th>Cash Sales</th>
+                                            <th>Card Sales</th>
+                                            <th>Bank Transfer</th>
+                                            <th>Online Sales</th>
+                                            <th>Closed By</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($topDailyClosings as $index => $closing): ?>
+                                            <tr>
+                                                <td>
+                                                    <?php
+                                                    $rankColors = [
+                                                        0 => 'bg-warning', // 1st place
+                                                        1 => 'bg-secondary', // 2nd place
+                                                        2 => 'bg-info' // 3rd place
+                                                    ];
+                                                    $rankIcons = [
+                                                        0 => 'uil-trophy',
+                                                        1 => 'uil-medal',
+                                                        2 => 'uil-award'
+                                                    ];
+                                                    ?>
+                                                    <span class="badge <?= $rankColors[$index] ?> fs-6">
+                                                        <i class="uil <?= $rankIcons[$index] ?> me-1"></i>
+                                                        <?= $index + 1 ?>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <strong><?= date('M d, Y', strtotime($closing['closing_date'])) ?></strong>
+                                                </td>
+                                                <td>
+                                                    <span class="fw-bold text-success fs-5">₱<?= number_format($closing['total_sales'], 2) ?></span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-info"><?= $closing['total_transactions'] ?></span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-secondary"><?= $closing['total_items_sold'] ?></span>
+                                                </td>
+                                                <td>
+                                                    <span class="text-success">₱<?= number_format($closing['cash_sales'], 2) ?></span>
+                                                </td>
+                                                <td>
+                                                    <span class="text-primary">₱<?= number_format($closing['card_sales'], 2) ?></span>
+                                                </td>
+                                                <td>
+                                                    <span class="text-info">₱<?= number_format($closing['bank_transfer_sales'], 2) ?></span>
+                                                </td>
+                                                <td>
+                                                    <span class="text-warning">₱<?= number_format($closing['online_sales'], 2) ?></span>
+                                                </td>
+                                                <td>
+                                                    <small class="text-muted"><?= $closing['closed_by_name'] ?? 'Unknown' ?></small>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-info" onclick="viewDailyClosingDetails('<?= $closing['closing_date'] ?>')" title="View Details">
+                                                        <i class="uil uil-eye"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php else: ?>
+                            <div class="text-center py-4">
+                                <div class="mb-3">
+                                    <i class="uil uil-trophy text-muted" style="font-size: 3rem;"></i>
+                                </div>
+                                <h5 class="text-muted">No Daily Closings Yet</h5>
+                                <p class="text-muted mb-3">Close some daily sales to see the top performers here</p>
+                                <a href="<?= base_url('admin/pos') ?>" class="btn btn-warning">
+                                    <i class="uil uil-cash-register"></i> Start Making Sales
                                 </a>
                             </div>
                         <?php endif; ?>
@@ -234,6 +345,8 @@
                 </div>
             </div>
         </div>
+
+
 
         <!-- Welcome Section -->
         <div class="card border-0 shadow-sm">
@@ -258,6 +371,112 @@
     </div>
 </div>
 
+<!-- Daily Closing Details Modal -->
+<div class="modal fade" id="dailyClosingDetailsModal" tabindex="-1" aria-labelledby="dailyClosingDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="dailyClosingDetailsModalLabel">Daily Closing Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <h6>Date: <span id="modalClosingDate"></span></h6>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <h6>Total Sales: <span id="modalTotalSales"></span></h6>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped" id="dailyClosingDetailsTable">
+                        <thead>
+                            <tr>
+                                <th>Sale #</th>
+                                <th>Customer</th>
+                                <th>Amount</th>
+                                <th>Payment Method</th>
+                                <th>Time</th>
+                                <th>Discount</th>
+                                <th>Tax</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dailyClosingDetailsTableBody">
+                            <tr>
+                                <td colspan="7" class="text-center">Loading sales details...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<?= $this->endSection(); ?>
+
+<?= $this->section('custom_scripts'); ?>
+<script>
+// View daily closing details for a specific date
+function viewDailyClosingDetails(date) {
+    document.getElementById('modalClosingDate').textContent = date;
+    document.getElementById('modalTotalSales').textContent = '₱0.00';
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('dailyClosingDetailsModal'));
+    modal.show();
+    
+    // Load sales details using the date
+    fetch(`/admin/sales-summary/getSalesDetails/${date}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayDailyClosingDetails(data.data);
+            } else {
+                document.getElementById('dailyClosingDetailsTableBody').innerHTML = 
+                    '<tr><td colspan="7" class="text-center text-danger">Error loading sales details: ' + data.message + '</td></tr>';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('dailyClosingDetailsTableBody').innerHTML = 
+                '<tr><td colspan="7" class="text-center text-danger">Error loading sales details</td></tr>';
+        });
+}
+
+// Display daily closing details in modal
+function displayDailyClosingDetails(sales) {
+    const tbody = document.getElementById('dailyClosingDetailsTableBody');
+    
+    if (sales.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center">No sales found for this date</td></tr>';
+        document.getElementById('modalTotalSales').textContent = '₱0.00';
+        return;
+    }
+    
+    // Calculate total from individual sales
+    const total = sales.reduce((sum, sale) => {
+        return sum + parseFloat(sale.total_amount.replace(/[^0-9.-]+/g, ''));
+    }, 0);
+    
+    document.getElementById('modalTotalSales').textContent = '₱' + total.toFixed(2);
+    
+    tbody.innerHTML = sales.map(sale => `
+        <tr>
+            <td>${sale.sale_number}</td>
+            <td>${sale.customer_name}</td>
+            <td><strong class="text-success">${sale.total_amount}</strong></td>
+            <td>${sale.payment_method}</td>
+            <td>${sale.created_at}</td>
+            <td>${sale.discount_amount}</td>
+            <td>${sale.tax_amount}</td>
+        </tr>
+    `).join('');
+}
+</script>
 <?= $this->endSection(); ?>
 
 <style>
@@ -288,6 +507,26 @@
         padding: 0.25rem 0.5rem;
         font-size: 0.875rem;
     }
+    
+    /* Top daily closings table responsive */
+    .table th:nth-child(6),
+    .table td:nth-child(6),
+    .table th:nth-child(7),
+    .table td:nth-child(7),
+    .table th:nth-child(8),
+    .table td:nth-child(8),
+    .table th:nth-child(9),
+    .table td:nth-child(9) {
+        min-width: 80px;
+    }
+    
+    .fs-5 {
+        font-size: 1rem !important;
+    }
+    
+    .fs-6 {
+        font-size: 0.875rem !important;
+    }
 }
 
 @media (max-width: 480px) {
@@ -307,6 +546,63 @@
     
     .card-header h5 {
         font-size: 1rem;
+    }
+    
+    /* Extra small screens */
+    .table th,
+    .table td {
+        padding: 0.25rem;
+        font-size: 0.75rem;
+    }
+    
+    .badge {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .table th:nth-child(1),
+    .table td:nth-child(1) {
+        min-width: 60px;
+    }
+    
+    .table th:nth-child(2),
+    .table td:nth-child(2) {
+        min-width: 80px;
+    }
+    
+    .table th:nth-child(3),
+    .table td:nth-child(3) {
+        min-width: 100px;
+    }
+    
+    .table th:nth-child(4),
+    .table td:nth-child(4) {
+        min-width: 90px;
+    }
+    
+    .table th:nth-child(5),
+    .table td:nth-child(5) {
+        min-width: 100px;
+    }
+}
+
+/* Tablet responsive */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .table-responsive {
+        font-size: 0.95rem;
+    }
+    
+    .table th,
+    .table td {
+        padding: 0.75rem;
+    }
+    
+    .fs-5 {
+        font-size: 1.1rem !important;
+    }
+    
+    .fs-6 {
+        font-size: 0.9rem !important;
     }
 }
 </style>

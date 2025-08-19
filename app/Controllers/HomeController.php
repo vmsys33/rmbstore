@@ -7,6 +7,7 @@ use App\Models\ProductModel;
 use App\Models\CategoryModel;
 use App\Models\UserModel;
 use App\Models\SaleModel;
+use App\Models\DailyClosingModel;
 use CodeIgniter\HTTP\ResponseInterface;
 
 class HomeController extends BaseController
@@ -15,6 +16,7 @@ class HomeController extends BaseController
     protected $categoryModel;
     protected $userModel;
     protected $saleModel;
+    protected $dailyClosingModel;
 
     public function __construct()
     {
@@ -22,6 +24,7 @@ class HomeController extends BaseController
         $this->categoryModel = new CategoryModel();
         $this->userModel = new UserModel();
         $this->saleModel = new SaleModel();
+        $this->dailyClosingModel = new DailyClosingModel();
     }
 
     public function index()
@@ -29,6 +32,7 @@ class HomeController extends BaseController
         // Get today's sales data
         $todaySales = $this->saleModel->getTodaySalesSummary();
         $recentSales = $this->saleModel->getRecentSales(5);
+        $topDailyClosings = $this->dailyClosingModel->getTopDailyClosings(3);
         
         $data = [
             'title' => 'Dashboard',
@@ -38,6 +42,7 @@ class HomeController extends BaseController
             'totalUsers' => $this->userModel->countAll(),
             'todaySales' => $todaySales,
             'recentSales' => $recentSales,
+            'topDailyClosings' => $topDailyClosings,
         ];
         return view('home/index', $data);
     }

@@ -5,18 +5,22 @@ namespace App\Controllers;
 use App\Models\ProductModel;
 use App\Models\CategoryModel;
 use App\Models\ProductGalleryModel;
+use App\Models\SettingsModel;
 use App\Helpers\ImageUploadHelper;
+use App\Helpers\CurrencyHelper;
 
 class ProductsController extends BaseController
 {
     protected $productModel;
     protected $categoryModel;
+    protected $settingsModel;
 
     public function __construct()
     {
         $this->productModel = new ProductModel();
         $this->categoryModel = new CategoryModel();
         $this->productGalleryModel = new ProductGalleryModel();
+        $this->settingsModel = new SettingsModel();
     }
 
     public function index()
@@ -26,6 +30,7 @@ class ProductsController extends BaseController
             'subTitle' => 'Manage your store products',
             'products' => $this->productModel->getActiveProducts(),
             'categories' => $this->categoryModel->getActiveCategories(),
+            'currencySymbol' => CurrencyHelper::getCurrencySymbol(),
         ];
 
         return view('products/index', $data);
@@ -37,6 +42,8 @@ class ProductsController extends BaseController
             'title' => 'Add New Product',
             'subTitle' => 'Create a new product',
             'categories' => $this->categoryModel->getActiveCategories(),
+            'currency' => CurrencyHelper::getCurrency(),
+            'currencySymbol' => CurrencyHelper::getCurrencySymbol(),
         ];
 
         return view('products/create', $data);
@@ -148,6 +155,7 @@ class ProductsController extends BaseController
             'title' => 'View Product',
             'subTitle' => 'Product Details',
             'product' => $product,
+            'currencySymbol' => CurrencyHelper::getCurrencySymbol(),
         ];
 
         return view('products/view', $data);
@@ -170,6 +178,8 @@ class ProductsController extends BaseController
             'subTitle' => 'Update Product Information',
             'product' => $product,
             'categories' => $this->categoryModel->getActiveCategories(),
+            'currency' => CurrencyHelper::getCurrency(),
+            'currencySymbol' => CurrencyHelper::getCurrencySymbol(),
         ];
 
         return view('products/edit', $data);
