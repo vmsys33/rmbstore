@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS System</title>
+    <style>
+        /* Styles from original code above... */
+
+        @media (max-width: 768px) {
+            .sales-summary {
+                grid-template-columns: 1fr;
+            }
+
+            .transactions-table {
+                font-size: 14px;
+                width: 100%;
+                overflow-x: auto;
+            }
+            
+            .transactions-table th,
+            .transactions-table td {
+                padding: 10px;
+            }
+
+            .transactions-table td, .transactions-table th {
+                white-space: nowrap;
+            }
+
+            .transaction-actions {
+                display: flex;
+                gap: 10px;
+                justify-content: center;
+            }
+
+            .transaction-actions button {
+                font-size: 12px;
+            }
+        }
+
+        /* Styling for total section */
+        .total-sales {
+            margin-top: 20px;
+            font-weight: bold;
+            text-align: center;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        /* Styling for transaction actions */
+        .edit-btn, .delete-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .edit-btn {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Content above... -->
+
+        <div class="sales-history-section">
+            <div class="sales-history-header">
+                <h2>📊 Today's Sales Transactions</h2>
+                <p>Real-time transaction tracking and sales summary</p>
+            </div>
+            
+            <div class="sales-history-content">
+                <h3>🕒 Today's Transactions</h3>
+                <div style="overflow-x: auto;">
+                    <table class="transactions-table">
+                        <thead>
+                            <tr>
+                                <th>Transaction ID</th>
+                                <th>Date & Time</th>
+                                <th>Items</th>
+                                <th>Total Amount</th>
+                                <th>Payment Method</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionsTableBody">
+                            <!-- Dummy transactions will be here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Total Sales Section -->
+                <div class="total-sales" id="totalSalesContainer">
+                    Total Sales: $0.00
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const transactionHistory = [
+            {
+                id: 'TXN-0001',
+                date: new Date(),
+                items: 3,
+                total: 1250.99,
+                paymentMethod: 'cash',
+                status: 'Completed'
+            },
+            {
+                id: 'TXN-0002',
+                date: new Date(),
+                items: 1,
+                total: 499.99,
+                paymentMethod: 'card',
+                status: 'Completed'
+            },
+            {
+                id: 'TXN-0003',
+                date: new Date(),
+                items: 2,
+                total: 189.99,
+                paymentMethod: 'mobile',
+                status: 'Completed'
+            }
+        ];
+
+        function updateTransactionsTable() {
+            const tableBody = document.getElementById('transactionsTableBody');
+            if (transactionHistory.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="7" class="no-transactions">No transactions yet. Complete your first sale!</td></tr>';
+                return;
+            }
+
+            tableBody.innerHTML = transactionHistory.map(transaction => {
+                const paymentClass = 'payment-' + transaction.paymentMethod;
+                const formattedDate = transaction.date.toLocaleDateString() + ' ' + transaction.date.toLocaleTimeString();
+                
+                return `
+                    <tr>
+                        <td class="transaction-id">${transaction.id}</td>
+                        <td>${formattedDate}</td>
+                        <td>${transaction.items} items</td>
+                        <td style="font-weight: 600; color: #28a745;">$${transaction.total.toFixed(2)}</td>
+                        <td><span class="payment-method ${paymentClass}">${transaction.paymentMethod.toUpperCase()}</span></td>
+                        <td><span style="color: #28a745; font-weight: 600;">✓ ${transaction.status}</span></td>
+                        <td class="transaction-actions">
+                            <button class="edit-btn" onclick="editTransaction('${transaction.id}')">Edit</button>
+                            <button class="delete-btn" onclick="deleteTransaction('${transaction.id}')">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            updateTotalSales();
+        }
+
+        function updateTotalSales() {
+            const totalSales = transactionHistory.reduce((sum, txn) => sum + txn.total, 0);
+            document.getElementById('totalSalesContainer').textContent = `Total Sales: $${totalSales.toFixed(2)}`;
+        }
+
+        function editTransaction(transactionId) {
+            const transaction = transactionHistory.find(txn => txn.id === transactionId);
+            if (!transaction) return;
+
+            // Placeholder for editing transaction logic
+            alert(`Edit transaction: ${transactionId}`);
+            // Implement editing functionality (update status, items, total, etc.)
+        }
+
+        function deleteTransaction(transactionId) {
+            const transactionIndex = transactionHistory.findIndex(txn => txn.id === transactionId);
+            if (transactionIndex >= 0) {
+                transactionHistory.splice(transactionIndex, 1);
+                updateTransactionsTable();
+            }
+        }
+
+        // Initialize the transactions table
+        updateTransactionsTable();
+    </script>
+</body>
+</html>
