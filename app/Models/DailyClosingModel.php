@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use CodeIgniter\Model;
+use App\Models\SaleModel;
 
 class DailyClosingModel extends Model
 {
@@ -59,7 +60,21 @@ class DailyClosingModel extends Model
     public function getTodayClosing()
     {
         $today = date('Y-m-d');
-        return $this->where('closing_date', $today)->first();
+        // Get sales summary for today
+        $saleModel = new SaleModel();
+        $salesData = $saleModel->getSalesSummaryForDate($today);
+        
+        return [
+            'closing_date' => $today,
+            'total_sales' => $salesData['total_sales'] ?? 0,
+            'total_transactions' => $salesData['total_transactions'] ?? 0,
+            'cash_sales' => $salesData['cash_sales'] ?? 0,
+            'card_sales' => $salesData['card_sales'] ?? 0,
+            'bank_transfer_sales' => $salesData['bank_transfer_sales'] ?? 0,
+            'online_sales' => $salesData['online_sales'] ?? 0,
+            'total_discounts' => $salesData['total_discounts'] ?? 0,
+            'total_tax' => $salesData['total_tax'] ?? 0
+        ];
     }
 
     /**
@@ -68,44 +83,41 @@ class DailyClosingModel extends Model
     public function isTodayClosed()
     {
         $today = date('Y-m-d');
-        return $this->where('closing_date', $today)->countAllResults() > 0;
+        // Check if there are any pending sales for today
+        $saleModel = new SaleModel();
+        $pendingSales = $saleModel->where('DATE(created_at)', $today)
+                                 ->where('closing_status', 'pending')
+                                 ->countAllResults();
+        
+        // If no pending sales, today is considered closed
+        return $pendingSales === 0;
     }
 
     /**
-     * Generate closing data from sales
+     * Mark sales as processed for a specific date
      */
-    public function generateClosingData($closingDate = null, $openingCash = 0)
+    public function markSalesAsProcessed($closingDate = null)
     {
         if (!$closingDate) {
             $closingDate = date('Y-m-d');
         }
 
-        // Get sales data for the date
+        // Get sales data for the date before marking as processed
         $saleModel = new SaleModel();
         $salesData = $saleModel->getSalesSummaryForDate($closingDate);
         
-        // Debug: Log the sales data
-        log_message('debug', 'Sales data for closing: ' . json_encode($salesData));
-
-        // Calculate cash shortage
-        $expectedCash = $openingCash + ($salesData['cash_sales'] ?? 0);
-        $cashShortage = 0; // This would be calculated based on actual cash count
-
+        // Mark all sales for this date as processed
+        $result = $saleModel->where('DATE(created_at)', $closingDate)
+                           ->where('closing_status', 'pending')
+                           ->set(['closing_status' => 'processed'])
+                           ->update();
+        
+        log_message('debug', "Marked {$result} sales as processed for date: {$closingDate}");
+        
         return [
-            'closing_date' => $closingDate,
-            'opening_cash' => $openingCash,
-            'closing_cash' => $expectedCash, // This should be actual counted cash
-            'cash_sales' => $salesData['cash_sales'] ?? 0,
-            'card_sales' => $salesData['card_sales'] ?? 0,
-            'bank_transfer_sales' => $salesData['bank_transfer_sales'] ?? 0,
-            'online_sales' => $salesData['online_sales'] ?? 0,
-            'total_sales' => $salesData['total_sales'] ?? 0,
-            'total_transactions' => $salesData['total_transactions'] ?? 0,
-            'total_items_sold' => $salesData['total_items_sold'] ?? 0,
-            'total_discounts' => $salesData['total_discounts'] ?? 0,
-            'total_tax' => $salesData['total_tax'] ?? 0,
-            'cash_shortage' => $cashShortage,
-            'closed_by' => session()->get('admin_id') ?? 1
+            'success' => true,
+            'processed_sales' => $result,
+            'sales_summary' => $salesData
         ];
     }
 
@@ -182,4 +194,5 @@ class DailyClosingModel extends Model
         ->limit($limit)
         ->findAll();
     }
+
 }

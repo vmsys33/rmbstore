@@ -1,0 +1,4 @@
+app_id = "1732250"
+key = "2e398da2a6cf329820d5"
+secret = "495f4f04357cd2441dc6"
+cluster = "ap1"

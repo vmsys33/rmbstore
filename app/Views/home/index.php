@@ -10,6 +10,34 @@
                 <h2 class="mb-1"><?= $title ?></h2>
                 <p class="text-muted mb-0"><?= $subTitle ?></p>
             </div>
+            <div class="d-flex align-items-center gap-3">
+                <!-- Store Status Indicator -->
+                <div class="store-status-indicator">
+                    <?php if ($storeStatus['is_open']): ?>
+                        <div class="d-flex align-items-center">
+                            <div class="status-dot bg-success me-2"></div>
+                            <span class="text-success fw-bold">STORE OPEN</span>
+                            <small class="text-muted ms-2"><?= $storeStatus['business_hours'] ?></small>
+                        </div>
+                    <?php else: ?>
+                        <div class="d-flex align-items-center">
+                            <div class="status-dot bg-danger me-2"></div>
+                            <span class="text-danger fw-bold">STORE CLOSED</span>
+                            <?php if (isset($storeStatus['closed_at'])): ?>
+                                <small class="text-muted ms-2">Closed at <?= date('g:i A', strtotime($storeStatus['closed_at'])) ?></small>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+                
+                <!-- Real-time Update Indicator -->
+                <div class="realtime-indicator">
+                    <small class="text-muted">
+                        <i class="uil uil-clock-three me-1"></i>
+                        Last updated: <span id="lastUpdated"><?= date('g:i:s A', strtotime($lastUpdated)) ?></span>
+                    </small>
+                </div>
+            </div>
         </div>
 
         <!-- Statistics Cards -->
@@ -88,7 +116,7 @@
 
             <!-- Today's Sales Card -->
             <div class="col-md-3 mb-3">
-                <div class="card border-0 shadow-sm">
+                <div class="card border-0 shadow-sm realtime-sales-card">
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="flex-shrink-0">
@@ -97,8 +125,11 @@
                                 </div>
                             </div>
                             <div class="flex-grow-1 ms-3">
-                                <h4 class="mb-1">₱<?= number_format($todaySales['total_amount'] ?? 0, 2) ?></h4>
+                                <h4 class="mb-1" id="todaySalesAmount">₱<?= number_format($todaySales['total_amount'] ?? 0, 2) ?></h4>
                                 <p class="text-muted mb-0">Today's Sales</p>
+                                <small class="text-success" id="salesUpdateIndicator" style="display: none;">
+                                    <i class="uil uil-refresh"></i> Live Updates
+                                </small>
                             </div>
                         </div>
                         <div class="mt-3">
@@ -112,7 +143,7 @@
 
             <!-- Today's Transactions Card -->
             <div class="col-md-3 mb-3">
-                <div class="card border-0 shadow-sm">
+                <div class="card border-0 shadow-sm realtime-transactions-card">
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="flex-shrink-0">
@@ -121,8 +152,11 @@
                                 </div>
                             </div>
                             <div class="flex-grow-1 ms-3">
-                                <h4 class="mb-1"><?= $todaySales['total_transactions'] ?? 0 ?></h4>
+                                <h4 class="mb-1" id="todayTransactionsCount"><?= $todaySales['total_transactions'] ?? 0 ?></h4>
                                 <p class="text-muted mb-0">Today's Transactions</p>
+                                <small class="text-warning" id="transactionsUpdateIndicator" style="display: none;">
+                                    <i class="uil uil-refresh"></i> Live Updates
+                                </small>
                             </div>
                         </div>
                         <div class="mt-3">
@@ -162,12 +196,15 @@
         <!-- Recent Sales Section -->
         <div class="row mb-4">
             <div class="col-12">
-                <div class="card border-0 shadow-sm">
+                <div class="card border-0 shadow-sm realtime-recent-sales">
                     <div class="card-header bg-transparent border-0">
                         <div class="d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">
                                 <i class="uil uil-clock-three text-primary me-2"></i>
                                 Recent Sales
+                                <span class="badge bg-success ms-2" id="recentSalesUpdateIndicator" style="display: none;">
+                                    <i class="uil uil-refresh"></i> Live
+                                </span>
                             </h5>
                             <a href="<?= base_url('admin/pos') ?>" class="btn btn-sm btn-primary">
                                 <i class="uil uil-plus"></i> New Sale
@@ -175,9 +212,10 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <?php if (!empty($recentSales)): ?>
-                            <div class="table-responsive">
-                                <table class="table table-hover">
+                        <div id="recentSalesTableContainer">
+                            <?php if (!empty($recentSales)): ?>
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
                                                                          <thead class="table-light">
                                          <tr>
                                              <th>Customer</th>
@@ -187,7 +225,7 @@
                                              <th>Status</th>
                                          </tr>
                                      </thead>
-                                    <tbody>
+                                    <tbody id="recentSalesTableBody">
                                         <?php foreach ($recentSales as $sale): ?>
                                             <tr>
                                                 <td>
@@ -232,6 +270,7 @@
                                 </div>
                             </div>
                         <?php endif; ?>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -420,6 +459,175 @@
 
 <?= $this->section('custom_scripts'); ?>
 <script>
+// Real-time dashboard updates using AJAX polling
+let lastUpdateTime = '<?= $lastUpdated ?>';
+let isUpdating = false;
+
+// Auto-refresh dashboard data every 10 seconds
+setInterval(() => {
+    if (!isUpdating) {
+        updateDashboardData();
+    }
+}, 10000);
+
+// Update dashboard data from AJAX response
+function updateDashboardData() {
+    if (isUpdating) return;
+    
+    isUpdating = true;
+    
+    fetch('/admin/getRealtimeData')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update dashboard data
+                updateDashboardFromData(data.data);
+            }
+        })
+        .catch(error => console.error('Auto-refresh error:', error))
+        .finally(() => {
+            isUpdating = false;
+        });
+}
+
+// Show update indicator with animation
+function showUpdateIndicator(elementId) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.style.display = 'inline';
+        element.style.animation = 'pulse 1s ease-in-out';
+        
+        setTimeout(() => {
+            element.style.animation = '';
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 3000);
+        }, 1000);
+    }
+}
+
+// Update recent sales table
+function updateRecentSalesTable(recentSales) {
+    const tbody = document.getElementById('recentSalesTableBody');
+    if (!tbody) return;
+    
+    if (recentSales.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center">No recent sales</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = recentSales.map(sale => `
+        <tr class="new-sale-row">
+            <td>
+                <span class="badge bg-primary">${sale.sale_number}</span>
+            </td>
+            <td>${sale.customer_name || 'Walk-in Customer'}</td>
+            <td>
+                <span class="fw-bold text-success">₱${parseFloat(sale.total_amount).toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                })}</span>
+            </td>
+            <td>
+                <span class="badge bg-${getPaymentMethodColor(sale.payment_method)}">${formatPaymentMethod(sale.payment_method)}</span>
+            </td>
+            <td>${formatDateTime(sale.created_at)}</td>
+            <td>
+                <span class="badge bg-success">Completed</span>
+            </td>
+        </tr>
+    `).join('');
+    
+    // Add highlight animation to new rows
+    const newRows = tbody.querySelectorAll('.new-sale-row');
+    newRows.forEach(row => {
+        row.style.backgroundColor = '#d4edda';
+        setTimeout(() => {
+            row.style.backgroundColor = '';
+            row.classList.remove('new-sale-row');
+        }, 2000);
+    });
+}
+
+// Get payment method color
+function getPaymentMethodColor(method) {
+    const colors = {
+        'cash': 'success',
+        'card': 'primary',
+        'bank_transfer': 'info',
+        'online': 'warning'
+    };
+    return colors[method] || 'secondary';
+}
+
+// Format payment method
+function formatPaymentMethod(method) {
+    return method.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
+
+// Format date time
+function formatDateTime(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    });
+}
+
+// Update store status
+function updateStoreStatus(storeStatus) {
+    const statusIndicator = document.querySelector('.store-status-indicator');
+    if (!statusIndicator) return;
+    
+    if (storeStatus.is_open) {
+        statusIndicator.innerHTML = `
+            <div class="d-flex align-items-center">
+                <div class="status-dot bg-success me-2"></div>
+                <span class="text-success fw-bold">STORE OPEN</span>
+                <small class="text-muted ms-2">${storeStatus.business_hours || '8:00 AM - 10:00 PM'}</small>
+            </div>
+        `;
+    } else {
+        statusIndicator.innerHTML = `
+            <div class="d-flex align-items-center">
+                <div class="status-dot bg-danger me-2"></div>
+                <span class="text-danger fw-bold">STORE CLOSED</span>
+                ${storeStatus.closed_at ? `<small class="text-muted ms-2">Closed at ${formatTime(storeStatus.closed_at)}</small>` : ''}
+            </div>
+        `;
+    }
+}
+
+// Format time
+function formatTime(timeString) {
+    const date = new Date(timeString);
+    return date.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    });
+}
+
+// Update last updated time
+function updateLastUpdatedTime() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+    });
+    
+    const lastUpdatedElement = document.getElementById('lastUpdated');
+    if (lastUpdatedElement) {
+        lastUpdatedElement.textContent = timeString;
+    }
+}
+
 // View daily closing details for a specific date
 function viewDailyClosingDetails(date) {
     document.getElementById('modalClosingDate').textContent = date;
@@ -476,10 +684,93 @@ function displayDailyClosingDetails(sales) {
         </tr>
     `).join('');
 }
+
+// Update dashboard from AJAX data
+function updateDashboardFromData(data) {
+    // Update today's sales amount
+    if (data.today_sales && data.today_sales.total_amount) {
+        const amount = parseFloat(data.today_sales.total_amount);
+        const currentAmount = document.getElementById('todaySalesAmount').textContent;
+        const newAmount = '₱' + amount.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+        
+        if (currentAmount !== newAmount) {
+            document.getElementById('todaySalesAmount').textContent = newAmount;
+            showUpdateIndicator('salesUpdateIndicator');
+        }
+    }
+    
+    // Update transactions count
+    if (data.today_sales && data.today_sales.total_transactions) {
+        const currentCount = document.getElementById('todayTransactionsCount').textContent;
+        const newCount = data.today_sales.total_transactions;
+        
+        if (currentCount != newCount) {
+            document.getElementById('todayTransactionsCount').textContent = newCount;
+            showUpdateIndicator('transactionsUpdateIndicator');
+        }
+    }
+    
+    // Update recent sales table if there are new sales
+    if (data.recent_sales) {
+        updateRecentSalesTable(data.recent_sales);
+        showUpdateIndicator('recentSalesUpdateIndicator');
+    }
+    
+    // Update store status
+    if (data.store_status) {
+        updateStoreStatus(data.store_status);
+    }
+    
+    // Update last updated time
+    updateLastUpdatedTime();
+}
 </script>
 <?= $this->endSection(); ?>
 
 <style>
+/* Store Status Indicator */
+.store-status-indicator {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    background: rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.realtime-indicator {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    background: rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Real-time update indicators */
+#salesUpdateIndicator,
+#transactionsUpdateIndicator,
+#recentSalesUpdateIndicator {
+    animation: pulse 1s ease-in-out;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* New sale row highlight */
+.new-sale-row {
+    transition: background-color 0.3s ease;
+}
+
 /* Mobile responsive for dashboard */
 @media (max-width: 768px) {
     .col-md-3 {

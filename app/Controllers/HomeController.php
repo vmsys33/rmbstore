@@ -8,6 +8,7 @@ use App\Models\CategoryModel;
 use App\Models\UserModel;
 use App\Models\SaleModel;
 use App\Models\DailyClosingModel;
+use App\Services\RealtimeService;
 use CodeIgniter\HTTP\ResponseInterface;
 
 class HomeController extends BaseController
@@ -17,6 +18,7 @@ class HomeController extends BaseController
     protected $userModel;
     protected $saleModel;
     protected $dailyClosingModel;
+    protected $realtimeService;
 
     public function __construct()
     {
@@ -25,14 +27,13 @@ class HomeController extends BaseController
         $this->userModel = new UserModel();
         $this->saleModel = new SaleModel();
         $this->dailyClosingModel = new DailyClosingModel();
+        $this->realtimeService = new RealtimeService();
     }
 
     public function index()
     {
-        // Get today's sales data
-        $todaySales = $this->saleModel->getTodaySalesSummary();
-        $recentSales = $this->saleModel->getRecentSales(5);
-        $topDailyClosings = $this->dailyClosingModel->getTopDailyClosings(3);
+        // Get real-time dashboard data
+        $dashboardData = $this->realtimeService->getDashboardData();
         
         $data = [
             'title' => 'Dashboard',
@@ -40,11 +41,26 @@ class HomeController extends BaseController
             'totalProducts' => $this->productModel->countAll(),
             'totalCategories' => $this->categoryModel->countAll(),
             'totalUsers' => $this->userModel->countAll(),
-            'todaySales' => $todaySales,
-            'recentSales' => $recentSales,
-            'topDailyClosings' => $topDailyClosings,
+            'todaySales' => $dashboardData['today_sales'],
+            'recentSales' => $dashboardData['recent_sales'],
+            'topDailyClosings' => $dashboardData['top_daily_closings'],
+            'storeStatus' => $dashboardData['store_status'],
+            'lastUpdated' => $dashboardData['last_updated'],
         ];
         return view('home/index', $data);
+    }
+
+    /**
+     * Get real-time dashboard data via AJAX
+     */
+    public function getRealtimeData()
+    {
+        $dashboardData = $this->realtimeService->getDashboardData();
+        
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => $dashboardData
+        ]);
     }
     public function index2()
     {

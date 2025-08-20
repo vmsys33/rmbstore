@@ -10,6 +10,7 @@ use App\Models\InventoryTransactionModel;
 use App\Models\CategoryModel;
 use App\Models\DailyClosingModel;
 use App\Helpers\CurrencyHelper;
+use App\Services\RealtimeService;
 
 class PosController extends BaseController
 {
@@ -20,6 +21,7 @@ class PosController extends BaseController
     protected $inventoryTransactionModel;
     protected $categoryModel;
     protected $dailyClosingModel;
+    protected $realtimeService;
 
     public function __construct()
     {
@@ -30,6 +32,7 @@ class PosController extends BaseController
         $this->inventoryTransactionModel = new InventoryTransactionModel();
         $this->categoryModel = new CategoryModel();
         $this->dailyClosingModel = new DailyClosingModel();
+        $this->realtimeService = new RealtimeService();
     }
 
     /**
@@ -274,6 +277,8 @@ class PosController extends BaseController
                 'created_at' => date('Y-m-d H:i:s'),
                 'items' => $items
             ];
+
+            // Note: Real-time updates are handled via AJAX polling in the dashboard
 
             return $this->response->setJSON([
                 'success' => true,
@@ -559,14 +564,7 @@ class PosController extends BaseController
             $data = $this->request->getPost();
         }
 
-        // Validate input
-        if (!isset($data['opening_cash']) || $data['opening_cash'] < 0) {
-            return $this->response->setJSON([
-                'success' => false,
-                'message' => 'Invalid opening cash amount'
-            ]);
-        }
-
+        // No validation needed - just mark sales as processed
         // Check if today is already closed
         if ($this->dailyClosingModel->isTodayClosed()) {
             return $this->response->setJSON([
@@ -576,37 +574,20 @@ class PosController extends BaseController
         }
 
         try {
-            // Generate closing data
-            $closingData = $this->dailyClosingModel->generateClosingData(
-                date('Y-m-d'),
-                $data['opening_cash']
-            );
+            // Simply mark sales as processed for today
+            $result = $this->dailyClosingModel->markSalesAsProcessed(date('Y-m-d'));
 
-            // Add closed_by user ID
-            $closingData['closed_by'] = session()->get('admin_id') ?? 1;
-
-            // Debug: Log the closing data
-            log_message('debug', 'Closing data: ' . json_encode($closingData));
-
-            // Insert closing record
-            $closingId = $this->dailyClosingModel->insert($closingData);
-
-            if ($closingId) {
-                $closing = $this->dailyClosingModel->find($closingId);
-                
+            if ($result['success']) {
                 return $this->response->setJSON([
                     'success' => true,
-                    'message' => 'Day closed successfully',
-                    'closing' => $closing
+                    'message' => 'Day closed successfully - Sales marked as processed',
+                    'processed_sales' => $result['processed_sales'],
+                    'sales_summary' => $result['sales_summary']
                 ]);
             } else {
-                // Get validation errors if any
-                $errors = $this->dailyClosingModel->errors();
-                log_message('error', 'Failed to insert closing record. Errors: ' . json_encode($errors));
-                
                 return $this->response->setJSON([
                     'success' => false,
-                    'message' => 'Failed to create closing record. Errors: ' . json_encode($errors)
+                    'message' => 'Failed to close day'
                 ]);
             }
 

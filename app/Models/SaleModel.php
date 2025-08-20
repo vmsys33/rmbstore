@@ -17,7 +17,7 @@ class SaleModel extends Model
     protected $allowedFields    = [
         'sale_number', 'customer_name', 'customer_email', 'customer_phone',
         'subtotal', 'tax_amount', 'discount_amount', 'total_amount',
-        'payment_method', 'payment_status', 'sale_status', 'notes', 'sold_by'
+        'payment_method', 'payment_status', 'sale_status', 'closing_status', 'notes', 'sold_by'
     ];
 
     // Dates
@@ -138,24 +138,6 @@ class SaleModel extends Model
      */
     public function getSalesSummaryForDate($date)
     {
-        // Check if this date has been closed
-        $dailyClosingModel = new \App\Models\DailyClosingModel();
-        $isDateClosed = $dailyClosingModel->where('closing_date', $date)->countAllResults() > 0;
-        
-        // If date is closed, return zero values
-        if ($isDateClosed) {
-            return [
-                'total_transactions' => 0,
-                'total_sales' => 0,
-                'cash_sales' => 0,
-                'card_sales' => 0,
-                'bank_transfer_sales' => 0,
-                'online_sales' => 0,
-                'total_discounts' => 0,
-                'total_tax' => 0
-            ];
-        }
-        
         $result = $this->select('
             COUNT(*) as total_transactions,
             SUM(total_amount) as total_sales,
@@ -167,6 +149,7 @@ class SaleModel extends Model
             SUM(tax_amount) as total_tax
         ')
         ->where('DATE(created_at)', $date)
+        ->where('closing_status', 'pending')
         ->get()
         ->getRowArray();
 
@@ -187,20 +170,11 @@ class SaleModel extends Model
      */
     public function getRecentSales($limit = 10)
     {
-        // Get all closed dates
-        $dailyClosingModel = new \App\Models\DailyClosingModel();
-        $closedDates = $dailyClosingModel->select('closing_date')->findAll();
-        $closedDateList = array_column($closedDates, 'closing_date');
-        
-        $builder = $this->select('id, sale_number, customer_name, total_amount, payment_method, created_at')
-                       ->orderBy('created_at', 'DESC');
-        
-        // Exclude sales from closed dates
-        if (!empty($closedDateList)) {
-            $builder->whereNotIn('DATE(created_at)', $closedDateList);
-        }
-        
-        return $builder->limit($limit)->findAll();
+        return $this->select('id, sale_number, customer_name, total_amount, payment_method, created_at')
+                   ->where('closing_status', 'pending')
+                   ->orderBy('created_at', 'DESC')
+                   ->limit($limit)
+                   ->findAll();
     }
     
     /**

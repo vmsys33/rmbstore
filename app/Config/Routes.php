@@ -33,6 +33,7 @@ $routes->group('admin', function($routes) {
 $routes->group('admin', ['filter' => 'adminAuth'], function($routes) {
     $routes->get('/', 'HomeController::index', ['as' => 'admin.home']);
     $routes->get('dashboard', 'HomeController::index', ['as' => 'admin.dashboard']);
+    $routes->get('getRealtimeData', 'HomeController::getRealtimeData', ['as' => 'admin.dashboard.realtime']);
     $routes->get('index2', 'HomeController::index2', ['as' => 'index2']);
     $routes->get('index3', 'HomeController::index3', ['as' => 'index3']);
     $routes->get('index4', 'HomeController::index4', ['as' => 'index4']);

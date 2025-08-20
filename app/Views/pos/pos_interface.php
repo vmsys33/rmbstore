@@ -71,8 +71,9 @@
                     </div>
                     <div class="summary-card">
                         <button id="closeDayBtn" class="close-day-btn" onclick="closeDay()" style="display: none;">
-                            🔒 Close Day
+                            <span style="color: white; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);">🔒 Close Day</span>
                         </button>
+
                     </div>
                 </div>
             </div>
@@ -612,7 +613,7 @@
 
 .close-day-btn {
     background: linear-gradient(135deg, #dc3545, #c82333);
-    color: white;
+    color: white !important;
     border: none;
     padding: 12px 20px;
     border-radius: 8px;
@@ -623,6 +624,7 @@
     box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
     width: 100%;
     margin-top: 10px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .close-day-btn:hover {
@@ -2148,9 +2150,15 @@ function processPayment(method) {
                     console.error('Checkout section not found');
                 }
                 
-                // Clear sales by creating daily closing record
-                console.log('Clearing sales by creating daily closing...');
-                clearSalesByDailyClosing();
+                // Load updated transactions and update sales summary
+                console.log('Loading updated transactions...');
+                loadTransactionsAfterSale();
+                
+                // Update sales summary after loading transactions
+                setTimeout(() => {
+                    console.log('Updating sales summary...');
+                    updateSalesSummary();
+                }, 500);
                 
                 // Show success message with SweetAlert
                 Swal.fire({
@@ -2743,14 +2751,10 @@ function closeDay() {
                 <p><strong>Are you sure you want to close the day?</strong></p>
                 <p>This will:</p>
                 <ul style="text-align: left; margin-left: 20px;">
-                    <li>Generate a daily closing report</li>
+                    <li>Mark today's sales as processed</li>
                     <li>Lock today's transactions</li>
                     <li>Prepare for the next business day</li>
                 </ul>
-            </div>
-            <div style="margin-top: 20px;">
-                <label for="openingCash" style="display: block; margin-bottom: 5px; font-weight: bold;">Opening Cash for Tomorrow:</label>
-                <input type="number" id="openingCash" class="swal2-input" placeholder="Enter opening cash amount" step="0.01" min="0">
             </div>
         `,
         icon: 'warning',
@@ -2758,19 +2762,9 @@ function closeDay() {
         confirmButtonColor: '#dc3545',
         cancelButtonColor: '#6c757d',
         confirmButtonText: 'Yes, Close Day',
-        cancelButtonText: 'Cancel',
-        preConfirm: () => {
-            const openingCash = document.getElementById('openingCash').value;
-            if (!openingCash || openingCash < 0) {
-                Swal.showValidationMessage('Please enter a valid opening cash amount');
-                return false;
-            }
-            return openingCash;
-        }
+        cancelButtonText: 'Cancel'
     }).then((result) => {
         if (result.isConfirmed) {
-            const openingCash = result.value;
-            
             // Show loading
             Swal.fire({
                 title: 'Closing Day...',
@@ -2788,9 +2782,7 @@ function closeDay() {
                     'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest'
                 },
-                body: JSON.stringify({
-                    opening_cash: parseFloat(openingCash)
-                })
+                body: JSON.stringify({})
             })
             .then(response => response.json())
             .then(data => {
@@ -2799,16 +2791,16 @@ function closeDay() {
                         icon: 'success',
                         title: 'Day Closed Successfully!',
                         html: `
-                                                                 <div style="text-align: left;">
-                                         <p><strong>Daily Closing Report:</strong></p>
-                                         <p>📊 Total Sales: ${formatCurrency(data.closing.total_sales)}</p>
-                                         <p>📋 Total Transactions: ${data.closing.total_transactions}</p>
-                                         <p>💰 Cash Sales: ${formatCurrency(data.closing.cash_sales)}</p>
-                                         <p>💳 Card Sales: ${formatCurrency(data.closing.card_sales)}</p>
-                                         <p>🏦 Bank Transfer: ${formatCurrency(data.closing.bank_transfer_sales)}</p>
-                                         <p>🌐 Online Sales: ${formatCurrency(data.closing.online_sales)}</p>
-                                         <p>💵 Opening Cash (Tomorrow): ${formatCurrency(openingCash)}</p>
-                                     </div>
+                            <div style="text-align: left;">
+                                <p><strong>Sales Summary:</strong></p>
+                                <p>📊 Total Sales: ${formatCurrency(data.sales_summary.total_sales || 0)}</p>
+                                <p>📋 Total Transactions: ${data.sales_summary.total_transactions || 0}</p>
+                                <p>💰 Cash Sales: ${formatCurrency(data.sales_summary.cash_sales || 0)}</p>
+                                <p>💳 Card Sales: ${formatCurrency(data.sales_summary.card_sales || 0)}</p>
+                                <p>🏦 Bank Transfer: ${formatCurrency(data.sales_summary.bank_transfer_sales || 0)}</p>
+                                <p>🌐 Online Sales: ${formatCurrency(data.sales_summary.online_sales || 0)}</p>
+                                <p>✅ Processed Sales: ${data.processed_sales || 0}</p>
+                            </div>
                         `,
                         confirmButtonText: 'OK'
                     });
@@ -2818,6 +2810,9 @@ function closeDay() {
                     if (closeDayBtn) {
                         closeDayBtn.style.display = 'none';
                     }
+                    
+                    // Refresh sales summary
+                    updateSalesSummary();
                 } else {
                     Swal.fire({
                         icon: 'error',
@@ -2839,5 +2834,7 @@ function closeDay() {
         }
     });
 }
+
+
 </script>
 <?= $this->endSection() ?>
