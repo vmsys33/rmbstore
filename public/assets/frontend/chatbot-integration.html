@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Integration Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .integration-code {
+            background: #f4f4f4;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .feature-list {
+            background: #e8f4fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .feature-list h3 {
+            color: #0066cc;
+            margin-top: 0;
+        }
+        .feature-list ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .feature-list li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🤖 RMB Store Chatbot Integration</h1>
+    
+    <p>This chatbot is designed to help customers with product inquiries, categories, pricing, and general store information.</p>
+    
+    <div class="feature-list">
+        <h3>✨ Features</h3>
+        <ul>
+            <li><strong>Smart Responses:</strong> AI-powered responses to common questions</li>
+            <li><strong>Quick Replies:</strong> Pre-defined buttons for faster interaction</li>
+            <li><strong>Mobile Responsive:</strong> Works perfectly on all devices</li>
+            <li><strong>Conversation History:</strong> Remembers chat history locally</li>
+            <li><strong>Typing Indicators:</strong> Realistic chat experience</li>
+            <li><strong>Keyboard Shortcuts:</strong> Enter to send, Escape to close</li>
+        </ul>
+    </div>
+
+    <h2>📱 How to Integrate</h2>
+    
+    <p>To add the chatbot to your frontend pages, simply include these lines in your HTML:</p>
+    
+    <div class="integration-code">&lt;!-- Add this in your HTML head section --&gt;
+&lt;link rel="stylesheet" href="/assets/frontend/css/chatbot.css"&gt;
+
+&lt;!-- Add this before closing body tag --&gt;
+&lt;script src="/assets/frontend/js/chatbot.js"&gt;&lt;/script&gt;
+
+&lt;!-- Add this HTML structure --&gt;
+&lt;div class="chatbot-toggle" id="chatbotToggle"&gt;
+    &lt;div class="chatbot-icon"&gt;💬&lt;/div&gt;
+    &lt;div class="chatbot-badge" id="chatbotBadge" style="display: none;"&gt;1&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="chatbot-container" id="chatbotContainer"&gt;
+    &lt;div class="chatbot-header"&gt;
+        &lt;div class="chatbot-title"&gt;
+            &lt;div class="chatbot-avatar"&gt;🤖&lt;/div&gt;
+            &lt;div class="chatbot-info"&gt;
+                &lt;h3&gt;RMB Store Assistant&lt;/h3&gt;
+                &lt;span class="status"&gt;Online&lt;/span&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;button class="chatbot-close" id="chatbotClose"&gt;&times;&lt;/button&gt;
+    &lt;/div&gt;
+
+    &lt;div class="chatbot-messages" id="chatbotMessages"&gt;
+        &lt;div class="message bot-message"&gt;
+            &lt;div class="message-content"&gt;
+                &lt;p&gt;👋 Hi there! How can I help you today?&lt;/p&gt;
+                &lt;div class="quick-replies"&gt;
+                    &lt;button class="quick-reply" onclick="sendQuickReply('products')"&gt;📦 Products&lt;/button&gt;
+                    &lt;button class="quick-reply" onclick="sendQuickReply('categories')"&gt;🏷️ Categories&lt;/button&gt;
+                    &lt;button class="quick-reply" onclick="sendQuickReply('contact')"&gt;📞 Contact&lt;/button&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div class="message-time"&gt;Just now&lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div class="chatbot-input"&gt;
+        &lt;input type="text" id="chatbotInput" placeholder="Type your message..." maxlength="500"&gt;
+        &lt;button class="chatbot-send" id="chatbotSend"&gt;📤&lt;/button&gt;
+    &lt;/div&gt;
+&lt;/div&gt;</div>
+
+    <h2>🎯 Quick Reply Actions</h2>
+    
+    <p>The chatbot supports these quick reply actions:</p>
+    
+    <ul>
+        <li><code>products</code> - Product information and browsing</li>
+        <li><code>categories</code> - Product categories</li>
+        <li><code>contact</code> - Contact information</li>
+        <li><code>pricing</code> - Pricing and deals</li>
+        <li><code>browse_products</code> - Product browsing guide</li>
+        <li><code>view_categories</code> - Category exploration</li>
+        <li><code>check_prices</code> - Price checking</li>
+        <li><code>all_categories</code> - Complete category list</li>
+        <li><code>search_products</code> - Product search help</li>
+        <li><code>contact_info</code> - Detailed contact info</li>
+        <li><code>send_email</code> - Email contact</li>
+        <li><code>location</code> - Store location</li>
+        <li><code>price_range</code> - Price range information</li>
+        <li><code>best_deals</code> - Current deals and promotions</li>
+        <li><code>product_list</code> - Product catalog overview</li>
+    </ul>
+
+    <h2>🔧 Customization</h2>
+    
+    <p>You can customize the chatbot by:</p>
+    
+    <ul>
+        <li>Modifying the CSS variables in <code>chatbot.css</code></li>
+        <li>Adding new quick reply actions in <code>chatbot.js</code></li>
+        <li>Customizing bot responses in the <code>generateBotResponse()</code> method</li>
+        <li>Changing the chatbot position and styling</li>
+        <li>Adding your store's specific contact information</li>
+    </ul>
+
+    <h2>📱 Mobile Experience</h2>
+    
+    <p>The chatbot is fully responsive and provides an excellent mobile experience:</p>
+    
+    <ul>
+        <li>Full-screen chat on mobile devices</li>
+        <li>Touch-friendly buttons and inputs</li>
+        <li>Optimized spacing for small screens</li>
+        <li>Smooth animations and transitions</li>
+    </ul>
+
+    <h2>🚀 Ready to Use!</h2>
+    
+    <p>Your chatbot is now ready! It will appear as a floating chat button in the bottom-right corner of your website. Customers can click it to start chatting and get instant help with their questions.</p>
+    
+    <p><strong>Note:</strong> Make sure to update the contact information in the JavaScript file with your actual store details.</p>
+</body>
+</html>

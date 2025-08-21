@@ -1,0 +1,42 @@
+#--------------------------------------------------------------------
+# ENVIRONMENT
+#--------------------------------------------------------------------
+CI_ENVIRONMENT = development
+
+#--------------------------------------------------------------------
+# APP
+#--------------------------------------------------------------------
+app.baseURL = 'http://localhost:8080/'
+app.indexPage = ''
+
+#--------------------------------------------------------------------
+# DATABASE
+#--------------------------------------------------------------------
+database.default.hostname = localhost
+database.default.database = rmbstore
+database.default.username = root
+database.default.password = 
+database.default.DBDriver = MySQLi
+database.default.DBPrefix =
+database.default.port = 3306
+
+#--------------------------------------------------------------------
+# SECURITY
+#--------------------------------------------------------------------
+app.sessionDriver = 'CodeIgniter\Session\Handlers\FileHandler'
+app.sessionCookieName = 'ci_session'
+app.sessionExpiration = 7200
+app.sessionSavePath = null
+app.sessionMatchIP = false
+app.sessionTimeToUpdate = 300
+app.sessionRegenerateDestroy = false
+
+#--------------------------------------------------------------------
+# COOKIE
+#--------------------------------------------------------------------
+app.cookiePrefix = ''
+app.cookieDomain = ''
+app.cookiePath = '/'
+app.cookieSecure = false
+app.cookieHTTPOnly = true
+app.cookieSameSite = 'Lax'

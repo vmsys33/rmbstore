@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RMB Store Chatbot</title>
+    <link rel="stylesheet" href="css/chatbot.css">
+</head>
+<body>
+    <!-- Chatbot Toggle Button -->
+    <div class="chatbot-toggle" id="chatbotToggle">
+        <div class="chatbot-icon">💬</div>
+        <div class="chatbot-badge" id="chatbotBadge" style="display: none;">1</div>
+    </div>
+
+    <!-- Chatbot Container -->
+    <div class="chatbot-container" id="chatbotContainer">
+        <div class="chatbot-header">
+            <div class="chatbot-title">
+                <div class="chatbot-avatar">🤖</div>
+                <div class="chatbot-info">
+                    <h3>RMB Store Assistant</h3>
+                    <span class="status">Online</span>
+                </div>
+            </div>
+            <button class="chatbot-close" id="chatbotClose">&times;</button>
+        </div>
+
+        <div class="chatbot-messages" id="chatbotMessages">
+            <div class="message bot-message">
+                <div class="message-content">
+                    <p>👋 Hi there! I'm your RMB Store assistant. How can I help you today?</p>
+                    <div class="quick-replies">
+                        <button class="quick-reply" onclick="sendQuickReply('products')">📦 Products</button>
+                        <button class="quick-reply" onclick="sendQuickReply('categories')">🏷️ Categories</button>
+                        <button class="quick-reply" onclick="sendQuickReply('contact')">📞 Contact</button>
+                        <button class="quick-reply" onclick="sendQuickReply('pricing')">💰 Pricing</button>
+                    </div>
+                </div>
+                <div class="message-time">Just now</div>
+            </div>
+        </div>
+
+        <div class="chatbot-input">
+            <input type="text" id="chatbotInput" placeholder="Type your message..." maxlength="500">
+            <button class="chatbot-send" id="chatbotSend">📤</button>
+        </div>
+    </div>
+
+    <script src="js/chatbot.js"></script>
+</body>
+</html>
