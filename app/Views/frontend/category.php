@@ -26,7 +26,12 @@
 			<div class="row">
 				                <div class="col s6">
                     <div class="content-left">
-                        <a href="<?= base_url() ?>"><h1><?= $settings['store_name'] ?? 'STORE' ?></h1></a>
+                        <a href="<?= base_url() ?>" style="display: flex; align-items: center; text-decoration: none;">
+                            <?php if (!empty($settings['store_icon'])): ?>
+                                <img src="<?= base_url($settings['store_icon']) ?>" alt="Store Icon" class="store-icon" style="height: 40px; width: auto; margin-right: 10px;">
+                            <?php endif; ?>
+                            <h1 style="margin: 0;"><?= $settings['store_name'] ?? 'STORE' ?></h1>
+                        </a>
                     </div>
                 </div>
 				<div class="col s6">

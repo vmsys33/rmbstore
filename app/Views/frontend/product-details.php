@@ -26,7 +26,12 @@
 			<div class="row">
 				                <div class="col s6">
                     <div class="content-left">
-                        <a href="<?= base_url() ?>"><h1><?= $settings['store_name'] ?? 'STORE' ?></h1></a>
+                        <a href="<?= base_url() ?>" style="display: flex; align-items: center; text-decoration: none;">
+                            <?php if (!empty($settings['store_icon'])): ?>
+                                <img src="<?= base_url($settings['store_icon']) ?>" alt="Store Icon" class="store-icon" style="height: 40px; width: auto; margin-right: 10px;">
+                            <?php endif; ?>
+                            <h1 style="margin: 0;"><?= $settings['store_name'] ?? 'STORE' ?></h1>
+                        </a>
                     </div>
                 </div>
 				<div class="col s6">
@@ -215,16 +220,8 @@
 						<h4><?= esc($product['product_name'] ?? 'Product Name') ?></h4>
 						<h5>$<?= number_format($product['price'] ?? 0, 2) ?></h5>
 						<p><?= esc($product['short_description'] ?? 'Product description will be displayed here.') ?></p>
-						<button class="button"><i class="fa fa-shopping-cart"></i>Add to cart</button>
 					</div>
-					<div class="share-media">
-						<h5>Share</h5>
-						<ul>
-							<li><a href=""><i class="fa fa-facebook"></i></a></li>
-							<li><a href=""><i class="fa fa-twitter"></i></a></li>
-							<li><a href=""><i class="fa fa-google"></i></a></li>
-						</ul>
-					</div>
+
 					<div class="desc-long">
 						<h5>Description</h5>
 						<p><?= esc($product['description'] ?? 'Detailed product description will be displayed here.') ?></p>
@@ -245,42 +242,6 @@
 					</div>
 				</div>
 				<?php endif; ?>
-				<div class="review">
-					<h5>Review</h5>
-					<div class="comment-people">
-						<div class="contents">
-							<div class="icon">
-								<img src="<?= base_url('assets/frontend/images/comment1.png') ?>" alt="">
-							</div>
-							<div class="text">
-								<h6>John Doe</h6>
-								<p class="date">January 10, 2018</p>
-								<p>Great product! Highly recommended.</p>
-							</div>
-						</div>
-						<div class="contents reply">
-							<div class="icon">
-								<img src="<?= base_url('assets/frontend/images/comment2.png') ?>" alt="">
-							</div>
-							<div class="text">
-								<h6>Jordan <i class="fa fa-bookmark"></i></h6>
-								<p class="date">January 10, 2018</p>
-								<p>Excellent quality and fast delivery!</p>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div class="comment-post">
-					<div class="comment-title">
-						<h5>Leave Your Reply</h5>
-					</div>
-					<form>
-						<input type="text" placeholder="Name">
-						<input type="email" placeholder="Email">
-						<textarea class="no-mb" cols="30" rows="10" placeholder="Message"></textarea>
-						<button class="button">Submit</button>
-					</form>
-				</div>
 			</div>
 		</div>
 	</div>
