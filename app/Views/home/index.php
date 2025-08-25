@@ -7,36 +7,17 @@
         <!-- Page Header -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h2 class="mb-1"><?= $title ?></h2>
-                <p class="text-muted mb-0"><?= $subTitle ?></p>
+                <!-- Title and subtitle are already displayed in the header -->
             </div>
             <div class="d-flex align-items-center gap-3">
                 <!-- Store Status Indicator -->
-                <div class="store-status-indicator">
-                    <?php if ($storeStatus['is_open']): ?>
-                        <div class="d-flex align-items-center">
-                            <div class="status-dot bg-success me-2"></div>
-                            <span class="text-success fw-bold">STORE OPEN</span>
-                            <small class="text-muted ms-2"><?= $storeStatus['business_hours'] ?></small>
-                        </div>
-                    <?php else: ?>
-                        <div class="d-flex align-items-center">
-                            <div class="status-dot bg-danger me-2"></div>
-                            <span class="text-danger fw-bold">STORE CLOSED</span>
-                            <?php if (isset($storeStatus['closed_at'])): ?>
-                                <small class="text-muted ms-2">Closed at <?= date('g:i A', strtotime($storeStatus['closed_at'])) ?></small>
-                            <?php endif; ?>
-                        </div>
-                    <?php endif; ?>
-                </div>
-                
-                <!-- Real-time Update Indicator -->
-                <div class="realtime-indicator">
-                    <small class="text-muted">
-                        <i class="uil uil-clock-three me-1"></i>
-                        Last updated: <span id="lastUpdated"><?= date('g:i:s A', strtotime($lastUpdated)) ?></span>
-                    </small>
-                </div>
+                <!-- 
+                    Store Status Logic:
+                    - OPEN: During business hours (8 AM - 10 PM) and no daily closing recorded
+                    - CLOSED: Either outside business hours OR daily closing has been recorded
+                    - Business hours: 8:00 AM - 10:00 PM
+                -->
+                <!-- Store status indicator removed - not needed -->
             </div>
         </div>
 
@@ -48,9 +29,7 @@
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="flex-shrink-0">
-                                <div class="bg-primary bg-opacity-10 rounded-circle p-3">
-                                    <i class="uil uil-box text-primary" style="font-size: 2rem;"></i>
-                                </div>
+                                <i class="uil uil-shopping-bag text-primary" style="font-size: 2.5rem;"></i>
                             </div>
                             <div class="flex-grow-1 ms-3">
                                 <h4 class="mb-1"><?= $totalProducts ?></h4>
@@ -72,9 +51,7 @@
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="flex-shrink-0">
-                                <div class="bg-success bg-opacity-10 rounded-circle p-3">
-                                    <i class="uil uil-list-ul text-success" style="font-size: 2rem;"></i>
-                                </div>
+                                <i class="uil uil-tag-alt text-success" style="font-size: 2.5rem;"></i>
                             </div>
                             <div class="flex-grow-1 ms-3">
                                 <h4 class="mb-1"><?= $totalCategories ?></h4>
@@ -96,9 +73,7 @@
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="flex-shrink-0">
-                                <div class="bg-info bg-opacity-10 rounded-circle p-3">
-                                    <i class="uil uil-users-alt text-info" style="font-size: 2rem;"></i>
-                                </div>
+                                <i class="uil uil-user-circle text-info" style="font-size: 2.5rem;"></i>
                             </div>
                             <div class="flex-grow-1 ms-3">
                                 <h4 class="mb-1"><?= $totalUsers ?></h4>
@@ -120,9 +95,7 @@
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="flex-shrink-0">
-                                <div class="bg-success bg-opacity-10 rounded-circle p-3">
-                                    <i class="uil uil-money-bill text-success" style="font-size: 2rem;"></i>
-                                </div>
+                                <i class="uil uil-bill text-success" style="font-size: 2.5rem;"></i>
                             </div>
                             <div class="flex-grow-1 ms-3">
                                 <h4 class="mb-1" id="todaySalesAmount">₱<?= number_format($todaySales['total_amount'] ?? 0, 2) ?></h4>
@@ -147,9 +120,7 @@
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="flex-shrink-0">
-                                <div class="bg-warning bg-opacity-10 rounded-circle p-3">
-                                    <i class="uil uil-receipt text-warning" style="font-size: 2rem;"></i>
-                                </div>
+                                <i class="uil uil-transaction text-warning" style="font-size: 2.5rem;"></i>
                             </div>
                             <div class="flex-grow-1 ms-3">
                                 <h4 class="mb-1" id="todayTransactionsCount"><?= $todaySales['total_transactions'] ?? 0 ?></h4>
@@ -174,9 +145,7 @@
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="flex-shrink-0">
-                                <div class="bg-primary bg-opacity-10 rounded-circle p-3">
-                                    <i class="uil uil-chart-line text-primary" style="font-size: 2rem;"></i>
-                                </div>
+                                <i class="uil uil-chart-pie text-primary" style="font-size: 2.5rem;"></i>
                             </div>
                             <div class="flex-grow-1 ms-3">
                                 <h4 class="mb-1">₱<?= number_format($todaySales['average_order'] ?? 0, 2) ?></h4>
@@ -387,26 +356,7 @@
 
 
 
-        <!-- Welcome Section -->
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="text-center py-5">
-                    <div class="mb-4">
-                        <i class="uil uil-store text-primary" style="font-size: 4rem;"></i>
-                    </div>
-                    <h3 class="mb-3">Welcome to RMB Store</h3>
-                    <p class="text-muted mb-4">Manage your products, categories, and users from this centralized dashboard.</p>
-                    <div class="d-flex justify-content-center gap-3">
-                        <a href="<?= route_to('products') ?>" class="btn btn-primary">
-                            <i class="uil uil-plus"></i> Add New Product
-                        </a>
-                        <a href="<?= base_url('admin/pos') ?>" class="btn btn-outline-secondary">
-                            <i class="uil uil-cash-register"></i> Open POS
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- Welcome section removed - duplicate of page header -->
     </div>
 </div>
 
@@ -731,20 +681,7 @@ function updateDashboardFromData(data) {
 <?= $this->endSection(); ?>
 
 <style>
-/* Store Status Indicator */
-.store-status-indicator {
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    background: rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.status-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    display: inline-block;
-}
+/* Store Status Indicator styles removed - not needed */
 
 .realtime-indicator {
     padding: 0.5rem 1rem;

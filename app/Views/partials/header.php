@@ -1,5 +1,12 @@
 <header class="geex-header">
     <div class="geex-header__wrapper">
+        <!-- Mobile Menu Toggle Button -->
+        <div class="geex-header__mobile-toggle">
+            <button class="geex-header__mobile-toggle__btn" id="mobileMenuToggle">
+                <i class="uil uil-bars"></i>
+            </button>
+        </div>
+        
         <div class="geex-header__logo-wrapper">
             <a href="<?= route_to('admin.home') ?>" class="geex-header__logo">
                 <?php 

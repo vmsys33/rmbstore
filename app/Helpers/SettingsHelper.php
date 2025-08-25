@@ -52,4 +52,12 @@ class SettingsHelper
     {
         return self::get('navicon');
     }
+
+    /**
+     * Get store icon
+     */
+    public static function getStoreIcon()
+    {
+        return self::get('store_icon');
+    }
 }

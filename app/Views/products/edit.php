@@ -262,7 +262,77 @@
                      </div>
                  </div>
 
-                <div class="d-flex justify-content-end gap-2">
+                <!-- Stock Management Section -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card border-primary">
+                            <div class="card-header bg-primary text-white">
+                                <h6 class="mb-0">
+                                    <i class="uil uil-box"></i> Stock Management
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="add_stock_quantity" class="form-label">Add Stock Quantity</label>
+                                            <input type="number" class="form-control" id="add_stock_quantity" 
+                                                   name="add_stock_quantity" min="1" placeholder="Enter quantity">
+                                            <small class="text-muted">Enter the quantity to add to current stock</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="stock_notes" class="form-label">Stock Notes</label>
+                                            <input type="text" class="form-control" id="stock_notes" 
+                                                   name="stock_notes" placeholder="e.g., New shipment, Restock">
+                                            <small class="text-muted">Optional notes about this stock addition</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">&nbsp;</label>
+                                            <button type="button" class="btn btn-success w-100" id="addStockBtn">
+                                                <i class="uil uil-plus"></i> Add Stock
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Current Stock Display -->
+                                <div class="row mt-3">
+                                    <div class="col-12">
+                                        <div class="alert alert-info">
+                                            <div class="row">
+                                                <div class="col-md-3">
+                                                    <strong>Current Stock:</strong> 
+                                                    <span class="badge bg-primary" id="currentStockDisplay">
+                                                        <?= isset($product['stock']) ? $product['stock'] : '0' ?>
+                                                    </span>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <strong>Stock Status:</strong> 
+                                                    <span class="badge bg-success" id="stockStatusDisplay">Active</span>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <strong>Last Updated:</strong> 
+                                                    <span id="lastStockUpdate">N/A</span>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <button type="button" class="btn btn-outline-info btn-sm" id="refreshStockBtn">
+                                                        <i class="uil uil-refresh"></i> Refresh
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
                     <a href="/admin/products" class="btn btn-secondary">Cancel</a>
                     <button type="submit" class="btn btn-primary">
                         <i class="uil uil-save"></i> Update Product
@@ -295,6 +365,119 @@
 
  <?= $this->section('custom_scripts'); ?>
  <script>
+ // Stock Management Functions
+ function addStock() {
+     const quantity = document.getElementById('add_stock_quantity').value;
+     const notes = document.getElementById('stock_notes').value;
+     const productId = <?= $product['id'] ?>;
+     
+     if (!quantity || quantity <= 0) {
+         alert('Please enter a valid quantity');
+         return;
+     }
+     
+     // Show loading state
+     const addStockBtn = document.getElementById('addStockBtn');
+     const originalText = addStockBtn.innerHTML;
+     addStockBtn.innerHTML = '<i class="uil uil-spinner"></i> Adding...';
+     addStockBtn.disabled = true;
+     
+     // Make AJAX request to add stock
+     fetch('/admin/stock-on-hand/add-stock', {
+         method: 'POST',
+         headers: {
+             'Content-Type': 'application/json',
+             'X-Requested-With': 'XMLHttpRequest'
+         },
+         body: JSON.stringify({
+             product_id: productId,
+             quantity: parseInt(quantity),
+             notes: notes
+         })
+     })
+     .then(response => response.json())
+     .then(data => {
+         if (data.success) {
+             alert('Stock added successfully!');
+             
+             // Clear form
+             document.getElementById('add_stock_quantity').value = '';
+             document.getElementById('stock_notes').value = '';
+             
+             // Refresh stock display
+             refreshStockDisplay();
+         } else {
+             alert('Error: ' + data.message);
+         }
+     })
+     .catch(error => {
+         console.error('Error:', error);
+         alert('Error adding stock. Please try again.');
+     })
+     .finally(() => {
+         // Restore button state
+         addStockBtn.innerHTML = originalText;
+         addStockBtn.disabled = false;
+     });
+ }
+ 
+ function refreshStockDisplay() {
+     const productId = <?= $product['id'] ?>;
+     
+     fetch(`/admin/stock-on-hand/get-product-stock/${productId}`)
+         .then(response => response.json())
+         .then(data => {
+             if (data.success) {
+                 const stockData = data.data;
+                 
+                 // Update current stock display
+                 document.getElementById('currentStockDisplay').textContent = stockData.stock_on_hand;
+                 
+                 // Update stock status
+                 const statusBadge = document.getElementById('stockStatusDisplay');
+                 statusBadge.textContent = stockData.availability_status;
+                 
+                 // Update status badge color
+                 statusBadge.className = 'badge ';
+                 switch (stockData.availability_status) {
+                     case 'In Stock':
+                         statusBadge.className += 'bg-success';
+                         break;
+                     case 'Low Stock':
+                         statusBadge.className += 'bg-warning';
+                         break;
+                     case 'Out of Stock':
+                     case 'Sold Out':
+                         statusBadge.className += 'bg-danger';
+                         break;
+                     default:
+                         statusBadge.className += 'bg-secondary';
+                 }
+                 
+                 // Update last updated
+                 if (stockData.last_stock_update) {
+                     const date = new Date(stockData.last_stock_update);
+                     document.getElementById('lastStockUpdate').textContent = date.toLocaleDateString();
+                 }
+             }
+         })
+         .catch(error => {
+             console.error('Error refreshing stock:', error);
+         });
+ }
+ 
+ // Event listeners
+ document.addEventListener('DOMContentLoaded', function() {
+     // Add stock button
+     document.getElementById('addStockBtn').addEventListener('click', addStock);
+     
+     // Refresh stock button
+     document.getElementById('refreshStockBtn').addEventListener('click', refreshStockDisplay);
+     
+     // Initial stock display refresh
+     refreshStockDisplay();
+ });
+ 
  // Image modal function
  function openImageModal(imageSrc, title) {
      document.getElementById('modalImage').src = imageSrc;

@@ -1,59 +1,29 @@
-<!-- RMB Store Chatbot Integration -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<link rel="stylesheet" href="<?= base_url('assets/frontend/css/chatbot.css') ?>">
+<!-- RMB Store Chatbot Widget -->
+<div id="chatbot-container"></div>
 
-<!-- Chatbot Container -->
-<div id="chatbot-container" class="chatbot-container">
-    <!-- Chatbot Header -->
-    <div class="chatbot-header">
-        <div class="chatbot-avatar">
-            <i class="fas fa-robot"></i>
-        </div>
-        <div class="chatbot-info">
-            <h3>RMB Store Assistant</h3>
-            <span class="status">Online</span>
-        </div>
-        <button id="minimize-btn" class="minimize-btn">
-            <i class="fas fa-minus"></i>
-        </button>
-    </div>
+<!-- Load Font Awesome for chatbot icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Chat Messages -->
-    <div id="chat-messages" class="chat-messages">
-        <div class="message bot-message">
-            <div class="message-content">
-                <p>Hello! 👋 Welcome to RMB Store. How can I help you today?</p>
-                <div class="quick-replies">
-                    <button class="quick-reply" onclick="sendQuickReply('products')">Browse Products</button>
-                    <button class="quick-reply" onclick="sendQuickReply('categories')">View Categories</button>
-                    <button class="quick-reply" onclick="sendQuickReply('contact')">Contact Support</button>
-                </div>
-            </div>
-            <span class="message-time">Just now</span>
-        </div>
-    </div>
+<!-- Load Chatbot CSS -->
+<link rel="stylesheet" href="<?= base_url('assets/css/chatbot.css') ?>">
 
-    <!-- Chat Input -->
-    <div class="chat-input-container">
-        <div class="input-wrapper">
-            <input type="text" id="chat-input" placeholder="Type your message..." maxlength="500">
-            <button id="send-btn" class="send-btn">
-                <i class="fas fa-paper-plane"></i>
-            </button>
-        </div>
-        <div class="typing-indicator" id="typing-indicator" style="display: none;">
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
-    </div>
-</div>
+<!-- Load Chatbot JS -->
+<script src="<?= base_url('assets/js/chatbot.js') ?>"></script>
 
-<!-- Chatbot Toggle Button -->
-<div id="chatbot-toggle" class="chatbot-toggle">
-    <i class="fas fa-comments"></i>
-    <span class="notification-badge" id="notification-badge" style="display: none;">1</span>
-</div>
+<!-- Initialize Chatbot -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize chatbot with configuration
+        window.chatbot = new ChatbotWidget({
+            apiBase: '<?= base_url('chatbot') ?>',
+            headerTitle: 'RMB Store Assistant',
+            placeholderText: 'Ask me anything about our products...',
+            welcomeMessage: 'Hello! 👋 I\'m your RMB Store assistant. How can I help you today?',
+            loadHistory: true,
+            debug: false
+        });
+    });
+</script>
 
-<!-- Chatbot JavaScript -->
-<script src="<?= base_url('assets/frontend/js/chatbot.js') ?>"></script>
+<!-- Note: The toggle button is now handled by the ChatbotWidget class -->
+<!-- The notification badge functionality is integrated into the widget -->

@@ -15,7 +15,7 @@
 	<link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
 	<link rel="stylesheet" href="<?= base_url('assets/css/style.css') ?>">
 	<!-- endinject -->
-	<link rel="icon" type="image/png" sizes="16x16" href="<?= base_url('assets/img/favicon.svg') ?>">
+	<link rel="icon" type="image/png" sizes="16x16" href="<?= base_url('assets/img/rmb_circle2.png') ?>">
 	<!-- Fonts -->
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@iconscout/unicons@4.0.8/css/line.min.css">
 

@@ -74,12 +74,20 @@ class PagesController extends BaseController
     
     public function forgetPassword()
     {
-        return  view('pages/forgetPassword');
+        // Get settings data for favicon
+        $settingsModel = new \App\Models\SettingsModel();
+        $settings = $settingsModel->first();
+        
+        return view('pages/forgetPassword', ['settings' => $settings]);
     }
     
     public function verification()
     {
-        return  view('pages/verification');
+        // Get settings data for favicon
+        $settingsModel = new \App\Models\SettingsModel();
+        $settings = $settingsModel->first();
+        
+        return view('pages/verification', ['settings' => $settings]);
     }
     
     public function error()

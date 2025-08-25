@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google AI Integration Test - RMB Store</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-button {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .test-button:hover {
+            background: #3367d6;
+        }
+        .test-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .loading {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .status {
+            text-align: center;
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .status.working {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Google AI Integration Test</h1>
+        <p>This page tests the Google AI integration in your RMB Store chatbot system.</p>
+        
+        <div class="test-section">
+            <h3>🧪 Test Google AI Integration</h3>
+            <p>Click the button below to test if Google AI is working properly:</p>
+            <button class="test-button" onclick="testGoogleAI()">Test Google AI</button>
+            <div id="testResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📊 Test Results</h3>
+            <div id="statusDisplay"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🔧 Manual Test</h3>
+            <p>You can also test the chatbot directly on your website to see Google AI in action!</p>
+            <ul>
+                <li>Go to your website</li>
+                <li>Open the chatbot</li>
+                <li>Ask questions like: "What's the weather like?" or "Tell me a joke"</li>
+                <li>These should now be answered by Google AI instead of fallback responses</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        async function testGoogleAI() {
+            const testButton = event.target;
+            const resultDiv = document.getElementById('testResult');
+            const statusDiv = document.getElementById('statusDisplay');
+            
+            // Disable button and show loading
+            testButton.disabled = true;
+            testButton.textContent = 'Testing...';
+            resultDiv.innerHTML = '<div class="result loading">Testing Google AI integration...</div>';
+            
+            try {
+                const response = await fetch('/chatbot/testGoogleAI');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    resultDiv.innerHTML = `
+                        <div class="result success">
+✅ Google AI Test Successful!
+
+Test Message: "${data.test_message}"
+
+AI Response: "${data.ai_response}"
+
+Provider: ${data.provider}
+                        </div>
+                    `;
+                    
+                    statusDiv.innerHTML = '<div class="status working">🎉 Google AI is working perfectly!</div>';
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="result error">
+❌ Google AI Test Failed
+
+Error: ${data.message}
+
+Test Message: "${data.test_message}"
+                        </div>
+                    `;
+                    
+                    statusDiv.innerHTML = '<div class="status failed">💥 Google AI test failed. Check the error details above.</div>';
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+❌ Test Failed
+
+Error: ${error.message}
+
+This might indicate a network issue or the endpoint is not accessible.
+                    </div>
+                `;
+                
+                statusDiv.innerHTML = '<div class="status failed">💥 Test failed due to network/access error.</div>';
+            } finally {
+                // Re-enable button
+                testButton.disabled = false;
+                testButton.textContent = 'Test Google AI';
+            }
+        }
+        
+        // Auto-test on page load
+        window.addEventListener('load', function() {
+            setTimeout(testGoogleAI, 1000);
+        });
+    </script>
+</body>
+</html>

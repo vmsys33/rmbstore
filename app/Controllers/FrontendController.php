@@ -116,4 +116,53 @@ class FrontendController extends BaseController
 
         return view('frontend/contact', $data);
     }
+
+    /**
+     * Search products for frontend search form
+     */
+    public function searchProducts()
+    {
+        try {
+            $query = $this->request->getGet('q');
+            
+            if (empty($query)) {
+                return $this->response->setJSON([
+                    'status' => 'error',
+                    'message' => 'Search query is required'
+                ])->setStatusCode(400);
+            }
+
+            // Use the existing searchProducts method from ProductModel
+            $products = $this->productModel->searchProducts($query);
+            
+            // Enhance products with category names and images
+            $enhancedProducts = [];
+            foreach ($products as $product) {
+                // Get category name
+                $category = $this->categoryModel->find($product['product_category']);
+                $product['category_name'] = $category ? $category['name'] : 'General';
+                
+                // Ensure we have the featured image
+                if (empty($product['featured_image']) && !empty($product['image_icon'])) {
+                    $product['featured_image'] = $product['image_icon'];
+                }
+                
+                $enhancedProducts[] = $product;
+            }
+            
+            return $this->response->setJSON([
+                'status' => 'success',
+                'data' => $enhancedProducts,
+                'query' => $query,
+                'count' => count($enhancedProducts)
+            ]);
+            
+        } catch (\Exception $e) {
+            log_message('error', 'Frontend search error: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'Search failed: ' . $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
 }

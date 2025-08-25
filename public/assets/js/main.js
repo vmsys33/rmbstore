@@ -1,6 +1,8 @@
 (function ($) {
 	"use strict";
 
+
+
 	// LocalStorage JS
 	let html = document.documentElement;
 	let geexTheme = localStorage.theme;
@@ -227,25 +229,85 @@
 		$("body").removeClass("overlay_active");
 	})
 
-  	// Sidebar Toggle
-  	$(".geex-btn__toggle-sidebar").click(function(e) {
-		e.preventDefault();
-		$(".geex-sidebar").toggleClass("active");
-		$(".geex-sidebar").animate({ 
-			width: "toggle" 
-		});
-		$("body").addClass("overlay_active");
-  	});
+  	  // Sidebar Toggle
+  $(".geex-btn__toggle-sidebar").click(function(e) {
+	e.preventDefault();
+	$(".geex-sidebar").toggleClass("active");
+	$(".geex-sidebar").animate({ 
+		width: "toggle" 
+	});
+	$("body").addClass("overlay_active");
+  });
 
-  	// Sidebar Close
-  	$(".geex-sidebar__close").click(function(e) {
-		e.preventDefault();
+  // Mobile Menu Toggle
+  $("#mobileMenuToggle").click(function(e) {
+	e.preventDefault();
+	
+	// Add the "active" class to the sidebar. The CSS handles the rest.
+	$(".geex-sidebar").addClass("active");
+	
+	// Add the "overlay_active" class to the body to show the overlay.
+	$("body").addClass("overlay_active");
+  });
+
+  // Alternative mobile menu toggle using class selector
+  $(".geex-content__header__mobile-toggle__btn").click(function(e) {
+	e.preventDefault();
+	
+	// Add the "active" class to the sidebar. The CSS handles the rest.
+	$(".geex-sidebar").addClass("active");
+	
+	// Add the "overlay_active" class to the body to show the overlay.
+	$("body").addClass("overlay_active");
+	
+	// Force display block with inline style to override any CSS
+	$(".geex-sidebar").css("display", "block");
+	$(".geex-sidebar").css("width", "280px");
+	$(".geex-sidebar").css("visibility", "visible");
+	$(".geex-sidebar").css("opacity", "1");
+	$(".geex-sidebar").css("z-index", "100");
+  });
+
+  	  // Sidebar Close
+  $(".geex-sidebar__close").click(function(e) {
+	e.preventDefault();
+	$(".geex-sidebar").removeClass("active");
+	$("body").removeClass("overlay_active");
+	
+	// Remove inline styles to reset the sidebar
+	$(".geex-sidebar").css("display", "");
+	$(".geex-sidebar").css("width", "");
+	$(".geex-sidebar").css("visibility", "");
+	$(".geex-sidebar").css("opacity", "");
+	$(".geex-sidebar").css("z-index", "");
+  });
+  
+  // Close sidebar when clicking on the overlay
+  $(document).on("click", "body.overlay_active", function(e) {
+	// Only close if clicking on the body itself, not on the sidebar
+	if (e.target === this) {
 		$(".geex-sidebar").removeClass("active");
-		$(".geex-sidebar").animate({ 
-			width: "toggle" 
-		});
 		$("body").removeClass("overlay_active");
-  	});
+		
+		// Remove inline styles to reset the sidebar
+		$(".geex-sidebar").css("display", "");
+		$(".geex-sidebar").css("width", "");
+		$(".geex-sidebar").css("visibility", "");
+		$(".geex-sidebar").css("opacity", "");
+		$(".geex-sidebar").css("z-index", "");
+	}
+  });
+
+  	  // Mobile Menu Toggle
+  $("#mobileMenuToggle").click(function(e) {
+	e.preventDefault();
+	
+	// Add the "active" class to the sidebar. The CSS handles the rest.
+	$(".geex-sidebar").addClass("active");
+	
+	// Add the "overlay_active" class to the body to show the overlay.
+	$("body").addClass("overlay_active");
+  });
 
 	// Datepicker Open
 	$("#geex-content__filter__label").click(function() {
@@ -366,6 +428,10 @@
 	let second = document.querySelector('.geex-countdown__seconds');
   
   	function setCountdown() {
+		// Only run countdown if elements exist
+		if (!day && !hour && !minute && !second) {
+			return;
+		}
   
 		// Set countdown date
 		let countdownDate = new Date('Jan 01, 2025 16:40:25').getTime();
@@ -404,7 +470,10 @@
 			// if countdown expires
 			if(distance < 0){
 				clearInterval(updateCount);
-				document.getElementById("geex-countdown").innerHTML = '<h1>EXPIRED</h1>'
+				let countdownElement = document.getElementById("geex-countdown");
+				if (countdownElement) {
+					countdownElement.innerHTML = '<h1>EXPIRED</h1>';
+				}
 			}
 		}, 300)
 	}

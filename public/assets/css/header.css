@@ -209,3 +209,116 @@ html[data-nav="top"] .geex-sidebar {
 .geex-header__submenu {
   z-index: 20;
 }
+
+/* Mobile Menu Toggle Button */
+.geex-header__mobile-toggle {
+  display: none;
+  margin-right: 15px;
+}
+
+.geex-header__mobile-toggle__btn {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  font-size: 24px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.geex-header__mobile-toggle__btn:hover {
+  background-color: var(--light-bg);
+  color: var(--primary-color);
+}
+
+/* Show mobile toggle on mobile devices */
+@media only screen and (max-width: 768px) {
+  .geex-header__mobile-toggle {
+    display: block !important;
+  }
+  
+  .geex-header__menu-wrapper {
+    display: none;
+  }
+  
+  .geex-header__action {
+    margin-left: auto;
+  }
+}
+
+/* Ensure mobile toggle is visible even when header is hidden in top nav mode */
+@media only screen and (max-width: 1199px) {
+  html[data-nav="top"] .geex-header__mobile-toggle {
+    display: block !important;
+  }
+}
+
+/* Content Header Mobile Toggle Button */
+.geex-content__header__mobile-toggle {
+  display: none;
+  margin-right: 15px;
+}
+
+.geex-content__header__mobile-toggle__btn {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  font-size: 24px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.geex-content__header__mobile-toggle__btn:hover {
+  background-color: var(--light-bg);
+  color: var(--primary-color);
+}
+
+/* Show content header mobile toggle on mobile devices */
+@media only screen and (max-width: 768px) {
+  .geex-content__header__mobile-toggle {
+    display: block !important;
+  }
+  
+  .geex-content__header {
+    display: flex;
+    align-items: center;
+  }
+  
+  .geex-content__header__content {
+    flex: 1;
+  }
+}
+
+/* Hide content header mobile toggle on desktop */
+@media only screen and (min-width: 769px) {
+  .geex-content__header__mobile-toggle,
+  .geex-content__header .geex-content__header__mobile-toggle,
+  div.geex-content__header__mobile-toggle {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    position: absolute !important;
+    left: -9999px !important;
+  }
+  
+  .geex-content__header__mobile-toggle__btn,
+  .geex-content__header .geex-content__header__mobile-toggle__btn,
+  button.geex-content__header__mobile-toggle__btn {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    position: absolute !important;
+    left: -9999px !important;
+  }
+}
+
+

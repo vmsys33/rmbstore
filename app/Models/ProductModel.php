@@ -334,31 +334,16 @@ class ProductModel extends Model
         return $products->findAll();
     }
 
-    /**
-     * Get products with inventory for POS
-     */
-    public function getProductsWithInventory()
-    {
-        $builder = $this->builder();
-        $builder->select('products.*, categories.name as category_name, COALESCE(SUM(inventory.available_quantity), 0) as available_quantity')
-                ->join('categories', 'categories.id = products.product_category', 'left')
-                ->join('inventory', 'inventory.product_id = products.id AND inventory.status = "active"', 'left')
-                ->groupBy('products.id')
-                ->orderBy('products.product_name', 'ASC');
 
-        return $builder->get()->getResultArray();
-    }
 
     /**
-     * Get products for POS with filters
+     * Get products for POS with filters (no inventory)
      */
     public function getProductsForPos($categoryId = null, $search = null)
     {
         $builder = $this->builder();
-        $builder->select('products.*, categories.name as category_name, COALESCE(SUM(inventory.available_quantity), 0) as available_quantity')
-                ->join('categories', 'categories.id = products.product_category', 'left')
-                ->join('inventory', 'inventory.product_id = products.id AND inventory.status = "active"', 'left')
-                ->groupBy('products.id');
+        $builder->select('products.*, categories.name as category_name')
+                ->join('categories', 'categories.id = products.product_category', 'left');
 
         if ($categoryId) {
             $builder->where('products.product_category', $categoryId);

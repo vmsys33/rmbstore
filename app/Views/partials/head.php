@@ -23,8 +23,9 @@
    
     <?php 
     $navicon = \App\Helpers\SettingsHelper::getNavicon();
+    $storeIcon = \App\Helpers\SettingsHelper::getStoreIcon();
     ?>
-    <link rel="icon" type="image/png" sizes="16x16" href="<?= $navicon ? base_url($navicon) : base_url('assets/img/favicon.svg') ?>">
+    <link rel="icon" type="image/png" sizes="16x16" href="<?= $navicon ? base_url($navicon) : ($storeIcon ? base_url($storeIcon) : base_url('assets/img/rmb_circle2.png')) ?>">
     <!-- FONTS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@iconscout/unicons@4.0.8/css/line.min.css">
 

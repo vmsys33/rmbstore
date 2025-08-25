@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Capsule Badges with Product Filter</title>
+    <!-- Tailwind CSS via CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Smooth transition for the badges disappearing */
+        .badge {
+            transition: all 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-200 flex flex-col items-center justify-center min-h-screen p-4 font-sans space-y-8">
+
+    <!-- Main Container for Filters and Products -->
+    <div class="bg-white p-6 rounded-2xl shadow-xl max-w-2xl w-full">
+        <h2 class="text-2xl font-bold mb-4">Product Filters</h2>
+        
+        <!-- Badges Container -->
+        <div id="badges-container" class="flex flex-wrap gap-2 mb-6 min-h-[40px]">
+            <!-- Badges will be dynamically added here -->
+        </div>
+
+        <!-- Filter Sections -->
+        <div class="flex flex-col md:flex-row md:space-x-8">
+            <!-- Category Filter -->
+            <div class="mb-6 md:mb-0">
+                <h3 class="text-lg font-semibold mb-2">Category</h3>
+                <div id="category-filter" class="flex flex-col space-y-2">
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="radio" class="form-radio text-blue-500" name="category" value="all" checked>
+                        <span class="ml-2">All</span>
+                    </label>
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="radio" class="form-radio text-blue-500" name="category" value="Electronics">
+                        <span class="ml-2">Electronics</span>
+                    </label>
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="radio" class="form-radio text-blue-500" name="category" value="Books">
+                        <span class="ml-2">Books</span>
+                    </label>
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="radio" class="form-radio text-blue-500" name="category" value="Clothing">
+                        <span class="ml-2">Clothing</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Price Filter -->
+            <div>
+                <h3 class="text-lg font-semibold mb-2">Price</h3>
+                <div id="price-filter" class="flex flex-col space-y-2">
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="radio" class="form-radio text-blue-500" name="price" value="all" checked>
+                        <span class="ml-2">All</span>
+                    </label>
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="radio" class="form-radio text-blue-500" name="price" value="0-100">
+                        <span class="ml-2">$0 - $100</span>
+                    </label>
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="radio" class="form-radio text-blue-500" name="price" value="101-500">
+                        <span class="ml-2">$101 - $500</span>
+                    </label>
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="radio" class="form-radio text-blue-500" name="price" value="501-1000">
+                        <span class="ml-2">$501 - $1000</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Products Container -->
+    <div class="bg-white p-6 rounded-2xl shadow-xl max-w-2xl w-full">
+        <h2 class="text-2xl font-bold mb-4">
+            Products
+            <!-- Product count caption -->
+            <span id="product-count" class="text-base font-normal text-gray-500 ml-2"></span>
+        </h2>
+        <div id="products-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Products will be dynamically added here -->
+        </div>
+    </div>
+
+    <script>
+        // Array of sample products
+        const products = [
+            { name: "Laptop", category: "Electronics", price: 850 },
+            { name: "Smartphone", category: "Electronics", price: 400 },
+            { name: "The Hobbit", category: "Books", price: 15 },
+            { name: "T-shirt", category: "Clothing", price: 25 },
+            { name: "Headphones", category: "Electronics", price: 90 },
+            { name: "Dune", category: "Books", price: 20 },
+            { name: "Jeans", category: "Clothing", price: 75 },
+            { name: "Tablet", category: "Electronics", price: 300 },
+            { name: "1984", category: "Books", price: 10 },
+            { name: "Jacket", category: "Clothing", price: 150 },
+            { name: "Camera", category: "Electronics", price: 650 },
+        ];
+
+        // Object to hold the currently active filters
+        let activeFilters = {
+            category: 'all',
+            price: 'all',
+        };
+
+        // DOM elements
+        const productsContainer = document.getElementById('products-container');
+        const badgesContainer = document.getElementById('badges-container');
+        const categoryFilter = document.getElementById('category-filter');
+        const priceFilter = document.getElementById('price-filter');
+        const productCountElement = document.getElementById('product-count');
+
+        // Function to filter and render products
+        function renderProducts() {
+            // Filter products based on active filters
+            const filteredProducts = products.filter(product => {
+                // Check category filter
+                const categoryMatch = activeFilters.category === 'all' || product.category === activeFilters.category;
+
+                // Check price filter
+                const priceMatch = activeFilters.price === 'all' || (() => {
+                    const [min, max] = activeFilters.price.split('-').map(Number);
+                    return product.price >= min && product.price <= max;
+                })();
+
+                return categoryMatch && priceMatch;
+            });
+
+            // Update the product count
+            productCountElement.textContent = `(${filteredProducts.length} items)`;
+
+            // Clear the products container before rendering
+            productsContainer.innerHTML = '';
+            
+            // If no products found, show a message
+            if (filteredProducts.length === 0) {
+                productsContainer.innerHTML = '<p class="text-center text-gray-500 col-span-full">No products found matching your criteria.</p>';
+            }
+
+            // Create and append a card for each filtered product
+            filteredProducts.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.className = 'bg-gray-100 p-4 rounded-xl shadow-md text-center';
+                productCard.innerHTML = `
+                    <h4 class="font-bold text-lg">${product.name}</h4>
+                    <p class="text-gray-600">${product.category}</p>
+                    <p class="font-semibold text-blue-600">$${product.price}</p>
+                `;
+                productsContainer.appendChild(productCard);
+            });
+        }
+
+        // Function to render the filter badges
+        function renderBadges() {
+            // Clear the badges container
+            badgesContainer.innerHTML = '';
+
+            // Render category badge if a filter is active
+            if (activeFilters.category !== 'all') {
+                const badge = document.createElement('div');
+                badge.className = 'badge bg-blue-500 text-white px-4 py-2 rounded-full cursor-pointer flex items-center gap-2 transform hover:scale-105';
+                badge.setAttribute('data-filter-key', 'category');
+                badge.setAttribute('data-filter-value', activeFilters.category);
+                badge.innerHTML = `
+                    <span>Category: ${activeFilters.category}</span>
+                    <span class="font-bold text-lg leading-none hover:text-gray-300">&times;</span>
+                `;
+                badgesContainer.appendChild(badge);
+            }
+
+            // Render price badge if a filter is active
+            if (activeFilters.price !== 'all') {
+                const badge = document.createElement('div');
+                badge.className = 'badge bg-green-500 text-white px-4 py-2 rounded-full cursor-pointer flex items-center gap-2 transform hover:scale-105';
+                badge.setAttribute('data-filter-key', 'price');
+                badge.setAttribute('data-filter-value', activeFilters.price);
+                badge.innerHTML = `
+                    <span>Price: $${activeFilters.price.replace('-', ' - $')}</span>
+                    <span class="font-bold text-lg leading-none hover:text-gray-300">&times;</span>
+                `;
+                badgesContainer.appendChild(badge);
+            }
+        }
+
+        // Add event listeners to the filter groups using event delegation
+        categoryFilter.addEventListener('change', (e) => {
+            activeFilters.category = e.target.value;
+            renderBadges();
+            renderProducts();
+        });
+
+        priceFilter.addEventListener('change', (e) => {
+            activeFilters.price = e.target.value;
+            renderBadges();
+            renderProducts();
+        });
+
+        // Add event listener to the badges container for removing filters
+        badgesContainer.addEventListener('click', (e) => {
+            // Find the parent badge element
+            const badge = e.target.closest('.badge');
+            if (badge) {
+                const key = badge.getAttribute('data-filter-key');
+                const value = badge.getAttribute('data-filter-value');
+                
+                // Reset the filter and corresponding radio button
+                activeFilters[key] = 'all';
+                const radioToReset = document.querySelector(`input[name="${key}"][value="all"]`);
+                if (radioToReset) {
+                    radioToReset.checked = true;
+                }
+
+                // Remove the badge from the DOM with a transition
+                badge.classList.add('opacity-0', 'scale-0');
+                setTimeout(() => {
+                    badge.remove();
+                    // Re-render the products after the badge is removed
+                    renderProducts();
+                }, 300);
+            }
+        });
+
+        // Initial render on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            renderProducts();
+            renderBadges();
+        });
+    </script>
+</body>
+</html>

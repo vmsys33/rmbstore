@@ -4,7 +4,7 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-	<link rel="icon" href="<?= base_url('assets/frontend/images/favicon.png') ?>">
+	<link rel="icon" href="<?= $settings['store_icon'] ? base_url($settings['store_icon']) : base_url('assets/img/rmb_circle2.png') ?>">
 	<title><?= $settings['store_name'] ?? 'Our Store' ?> - <?= esc($category['name'] ?? 'Category') ?></title>
 
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
@@ -24,25 +24,42 @@
 	<div class="navbar">
 		<div class="container">
 			<div class="row">
-				<div class="col s6">
-					<div class="content-left">
-						<a href="#slide-out" data-activates="slide-out" class="sidebar"><i class="fa fa-bars"></i></a>
-						<a href="<?= base_url() ?>"><h1><?= $settings['store_name'] ?? 'STORE' ?></h1></a>
-					</div>
-				</div>
+				                <div class="col s6">
+                    <div class="content-left">
+                        <a href="<?= base_url() ?>"><h1><?= $settings['store_name'] ?? 'STORE' ?></h1></a>
+                    </div>
+                </div>
 				<div class="col s6">
 					<div class="content-right">
-						<a href="#slide-out-right" data-activates="slide-out-right" class="sidebar-search"><i class="fa fa-search"></i></a>
-						<a href="#slide-out-cart" data-activates="slide-out-cart" class="sidebar-cart">
-							<i class="fa fa-shopping-cart"></i>
-							<sup>0</sup>
-						</a>
+						<a href="#searchModal" class="modal-trigger search-icon-nav"><i class="fa fa-search"></i></a>
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
 	<!-- end navbar -->
+	
+	<!-- Search Modal -->
+	<div id="searchModal" class="modal search-modal">
+		<div class="modal-content">
+			<div class="search-modal-header">
+				<h4><i class="fa fa-search"></i> Search Products</h4>
+				<a href="#!" class="fa fa-times modal-action modal-close"></a>
+			</div>
+			<div class="search-modal-body">
+				<div class="search-form-container">
+					<div class="search-input-wrapper">
+						<i class="fa fa-search search-icon"></i>
+						<input type="text" id="headerProductSearch" placeholder="Search for products, brands, categories..." autocomplete="off">
+						<div class="search-suggestions hidden" id="searchSuggestions">
+							<!-- Product suggestions will appear here -->
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- end Search Modal -->
 	
 	<!-- sidebar -->
     <div class="sidebar-panel">
@@ -233,44 +250,98 @@
     <script src="<?= base_url('assets/frontend/js/styleswitcher.js') ?>?v=1.0"></script>
 	<script src="<?= base_url('assets/frontend/js/main.js') ?>?v=1.0"></script>
 
-	<!-- Chatbot Integration -->
-	<div class="chatbot-toggle" id="chatbotToggle">
-		<div class="chatbot-icon">💬</div>
-		<div class="chatbot-badge" id="chatbotBadge" style="display: none;">1</div>
-	</div>
+	<!-- Load Products for Search -->
+	<script>
+		// Global products array for search functionality
+		let products = [];
+		
+		// Load products when page loads
+		document.addEventListener('DOMContentLoaded', function() {
+			// Load products from the page data
+			<?php if (!empty($products)): ?>
+				products = <?= json_encode($products) ?>;
+				console.log('📦 Loaded', products.length, 'products for search');
+			<?php else: ?>
+				console.log('⚠️ No products loaded for search');
+			<?php endif; ?>
+		});
+	</script>
 
-	<div class="chatbot-container" id="chatbotContainer">
-		<div class="chatbot-header">
-			<div class="chatbot-title">
-				<div class="chatbot-avatar">🤖</div>
-				<div class="chatbot-info">
-					<h3>RMB Store Assistant</h3>
-					<span class="status">Online</span>
-				</div>
-			</div>
-			<button class="chatbot-close" id="chatbotClose">&times;</button>
-		</div>
+	<!-- Chatbot Widget -->
+    <div class="chatbot-widget" id="chatbotWidget">
+        <!-- Chat Button -->
+        <div class="chat-button" id="chatButton">
+            <i class="fa fa-comments"></i>
+        </div>
+        
+        <!-- Chat Window -->
+        <div class="chat-window" id="chatWindow">
+            <!-- Chat Header -->
+            <div class="chat-header">
+                <div class="chat-header-info">
+                    <div class="chat-avatar">
+                        <i class="fa fa-robot"></i>
+                    </div>
+                    <div class="chat-title">
+                        <h4>RMB Store Assistant</h4>
+                        <span class="status">Online</span>
+                    </div>
+                </div>
+                <div class="chat-actions">
+                    <button class="close-btn" id="closeBtn">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Chat Messages -->
+            <div class="chat-messages" id="chatMessages">
+                <!-- Welcome Message -->
+                <div class="message bot-message">
+                    <div class="message-content">
+                        <p>👋 Hi there! I'm your RMB Store assistant. How can I help you today?</p>
+                        <span class="message-time">Just now</span>
+                    </div>
+                </div>
+                
 
-		<div class="chatbot-messages" id="chatbotMessages">
-			<div class="message bot-message">
-				<div class="message-content">
-					<p>👋 Hi there! I'm your RMB Store assistant. How can I help you today?</p>
-					<div class="quick-replies">
-						<button class="quick-reply" onclick="sendQuickReply('products')">📦 Products</button>
-						<button class="quick-reply" onclick="sendQuickReply('categories')">🏷️ Categories</button>
-						<button class="quick-reply" onclick="sendQuickReply('contact')">📞 Contact</button>
-						<button class="quick-reply" onclick="sendQuickReply('pricing')">💰 Pricing</button>
-					</div>
-				</div>
-				<div class="message-time">Just now</div>
-			</div>
-		</div>
-
-		<div class="chatbot-input">
-			<input type="text" id="chatbotInput" placeholder="Type your message..." maxlength="500">
-			<button class="chatbot-send" id="chatbotSend">📤</button>
-		</div>
-	</div>
+            </div>
+            
+            <!-- Mode Toggle -->
+            <div class="chat-mode-toggle">
+                <div class="mode-indicator" id="modeIndicator">🤖 Auto-Detect</div>
+                <div class="mode-buttons">
+                    <button class="mode-btn active" data-mode="auto" title="Auto-detect mode">
+                        <i class="fa fa-magic"></i>
+                        <span>Auto</span>
+                    </button>
+                    <button class="mode-btn" data-mode="products" title="Product search mode">
+                        <i class="fa fa-shopping-bag"></i>
+                        <span>Products</span>
+                    </button>
+                    <button class="mode-btn" data-mode="store" title="Store inquiry mode">
+                        <i class="fa fa-store"></i>
+                        <span>Store</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Chat Input -->
+            <div class="chat-input-container">
+                <div class="chat-input-wrapper">
+                    <input type="text" id="chatInput" placeholder="Ask me anything... (auto-detect mode)" maxlength="500">
+                    <button class="send-btn" id="sendBtn" title="Send Message">
+                        <i class="fa fa-paper-plane"></i>
+                    </button>
+                </div>
+                <div class="typing-indicator" id="typingIndicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    </div>
 
 	<script src="<?= base_url('assets/frontend/js/chatbot.js') ?>"></script>
 

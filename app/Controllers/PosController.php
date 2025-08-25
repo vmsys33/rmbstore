@@ -5,8 +5,7 @@ namespace App\Controllers;
 use App\Models\ProductModel;
 use App\Models\SaleModel;
 use App\Models\SaleItemModel;
-use App\Models\InventoryModel;
-use App\Models\InventoryTransactionModel;
+
 use App\Models\CategoryModel;
 use App\Models\DailyClosingModel;
 use App\Helpers\CurrencyHelper;
@@ -17,8 +16,7 @@ class PosController extends BaseController
     protected $productModel;
     protected $saleModel;
     protected $saleItemModel;
-    protected $inventoryModel;
-    protected $inventoryTransactionModel;
+
     protected $categoryModel;
     protected $dailyClosingModel;
     protected $realtimeService;
@@ -28,8 +26,7 @@ class PosController extends BaseController
         $this->productModel = new ProductModel();
         $this->saleModel = new SaleModel();
         $this->saleItemModel = new SaleItemModel();
-        $this->inventoryModel = new InventoryModel();
-        $this->inventoryTransactionModel = new InventoryTransactionModel();
+
         $this->categoryModel = new CategoryModel();
         $this->dailyClosingModel = new DailyClosingModel();
         $this->realtimeService = new RealtimeService();
@@ -44,7 +41,7 @@ class PosController extends BaseController
             'title' => 'Point of Sale',
             'subTitle' => 'Process Sales Transactions',
             'categories' => $this->categoryModel->select('id, name as category_name')->findAll(),
-            'products' => $this->productModel->getProductsWithInventory(),
+            'products' => $this->productModel->getProductsForPos(),
             'todaySales' => $this->saleModel->getTodaySalesSummary(),
             'recentSales' => $this->saleModel->getRecentSales(10)
         ];
@@ -83,9 +80,8 @@ class PosController extends BaseController
             ]);
         }
 
-        // Get available quantity
-        $availableQuantity = $this->inventoryModel->getTotalAvailableQuantity($productId);
-        $product['available_quantity'] = $availableQuantity;
+        // Set default available quantity (no inventory system)
+        $product['available_quantity'] = 999;
 
         return $this->response->setJSON([
             'success' => true,
@@ -202,29 +198,7 @@ class PosController extends BaseController
                 $productId = $item['product_id'];
                 $quantity = $item['quantity'];
 
-                // Check if enough inventory is available
-                $availableQuantity = $this->inventoryModel->getTotalAvailableQuantity($productId);
-                log_message('debug', "Product ID: {$productId}, Available Quantity: {$availableQuantity}, Requested: {$quantity}");
-                
-                if ($availableQuantity < $quantity) {
-                    throw new \Exception("Insufficient inventory for product ID: {$productId}. Available: {$availableQuantity}, Requested: {$quantity}");
-                }
-
-                // Reserve quantity
-                $reservation = $this->inventoryModel->reserveQuantity($productId, $quantity);
-                log_message('debug', "Reservation result for product {$productId}: " . json_encode($reservation));
-                
-                if (!$reservation['success']) {
-                    throw new \Exception("Failed to reserve inventory for product ID: {$productId}. Error: " . ($reservation['message'] ?? 'Unknown error'));
-                }
-
-                // Deduct quantity from inventory
-                $deduction = $this->inventoryModel->deductQuantity($productId, $quantity);
-                log_message('debug', "Deduction result for product {$productId}: " . ($deduction ? 'success' : 'failed'));
-                
-                if (!$deduction) {
-                    throw new \Exception("Failed to deduct inventory for product ID: {$productId}");
-                }
+                // Inventory system removed - no quantity checks
 
                 // Create sale item record
                 $saleItemRecord = [
@@ -243,14 +217,7 @@ class PosController extends BaseController
                 $this->saleItemModel->insert($saleItemRecord);
             }
 
-            // Record inventory transactions for the sale
-            // Temporarily disabled to fix POS functionality
-            // $this->inventoryTransactionModel->recordSaleTransaction(
-            //     $saleId, 
-            //     $saleNumber, 
-            //     $items, 
-            //     $adminId ?? 1
-            // );
+            // Inventory system removed - no transaction recording
 
             $db->transComplete();
             log_message('debug', "Transaction completed. Status: " . ($db->transStatus() ? 'SUCCESS' : 'FAILED'));
@@ -495,61 +462,11 @@ class PosController extends BaseController
         }
     }
 
-    /**
-     * Get inventory status
-     */
-    public function inventoryStatus()
-    {
-        $data = [
-            'title' => 'Inventory Status',
-            'subTitle' => 'Monitor Product Inventory',
-            'lowStock' => $this->inventoryModel->getLowStockInventory(),
-            'expiring' => $this->inventoryModel->getExpiringInventory()
-        ];
 
-        return view('pos/inventory_status', $data);
-    }
 
-    /**
-     * Get inventory transactions
-     */
-    public function getInventoryTransactions()
-    {
-        $transactions = $this->inventoryTransactionModel
-            ->orderBy('created_at', 'DESC')
-            ->limit(100)
-            ->findAll();
-        
-        return $this->response->setJSON([
-            'success' => true,
-            'transactions' => $transactions
-        ]);
-    }
 
-    /**
-     * Get inventory movement report
-     */
-    public function getInventoryReport()
-    {
-        $startDate = $this->request->getGet('start_date') ?? date('Y-m-01');
-        $endDate = $this->request->getGet('end_date') ?? date('Y-m-d');
-        $productId = $this->request->getGet('product_id');
 
-        $report = $this->inventoryTransactionModel->getInventoryMovementReport(
-            $startDate, 
-            $endDate, 
-            $productId
-        );
 
-        return $this->response->setJSON([
-            'success' => true,
-            'report' => $report,
-            'date_range' => [
-                'start_date' => $startDate,
-                'end_date' => $endDate
-            ]
-        ]);
-    }
 
     /**
      * Close day - Generate daily closing report

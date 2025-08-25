@@ -14,6 +14,8 @@ $routes->get('product/(:num)', 'FrontendController::product/$1', ['as' => 'front
 $routes->get('category/(:num)', 'FrontendController::category/$1', ['as' => 'frontend.category']);
 $routes->get('about', 'FrontendController::about', ['as' => 'frontend.about']);
 $routes->get('contact', 'FrontendController::contact', ['as' => 'frontend.contact']);
+$routes->get('search', 'FrontendController::searchProducts', ['as' => 'frontend.search']);
+
 
 // Admin Authentication Routes
 $routes->group('admin', function($routes) {
@@ -92,7 +94,7 @@ $routes->group('admin', ['filter' => 'adminAuth'], function($routes) {
     $routes->get('pos/today-stats', 'PosController::getTodayStats', ['as' => 'pos.todayStats']);
     $routes->get('pos/recent-sales', 'PosController::getRecentSales', ['as' => 'pos.recentSales']);
     $routes->post('pos/close-day', 'PosController::closeDay', ['as' => 'pos.closeDay']);
-    $routes->get('pos/inventory-status', 'PosController::inventoryStatus', ['as' => 'pos.inventoryStatus']);
+
     
     // Sales Summary Routes
     $routes->get('sales-summary', 'SalesSummaryController::index', ['as' => 'sales-summary']);
@@ -100,6 +102,8 @@ $routes->group('admin', ['filter' => 'adminAuth'], function($routes) {
     $routes->get('sales-summary/getSalesDetails/(:any)', 'SalesSummaryController::getSalesDetails/$1', ['as' => 'sales-summary.getSalesDetails']);
     $routes->get('sales-summary/getStats', 'SalesSummaryController::getStats', ['as' => 'sales-summary.getStats']);
     $routes->get('sales-summary/exportCsv', 'SalesSummaryController::exportCsv', ['as' => 'sales-summary.exportCsv']);
+    
+
 });
 
 $routes->group('features', function($routes) {
@@ -179,3 +183,48 @@ $routes->group('store', function($routes) {
     $routes->put('products/(:num)/post', 'StoreController::updateProductPost/$1', ['as' => 'updateProductPost']);
 });
 
+// Chatbot API Routes
+$routes->group('chatbot', ['namespace' => 'App\Controllers'], function($routes) {
+    $routes->get('getProducts', 'ChatbotController::getProducts');
+    $routes->get('searchProducts', 'ChatbotController::searchProducts');
+    $routes->get('getProductSuggestions', 'ChatbotController::getProductSuggestions');
+    $routes->get('getProductCategories', 'ChatbotController::getProductCategories');
+    $routes->get('getProductPriceRange', 'ChatbotController::getProductPriceRange');
+    $routes->get('getQA', 'ChatbotController::getQA');
+    $routes->get('searchQA', 'ChatbotController::searchQA');
+    $routes->post('generateResponse', 'ChatbotController::generateResponse');
+    $routes->post('getAIResponse', 'ChatbotController::getAIResponse');
+    $routes->get('testGoogleAI', 'ChatbotController::testGoogleAI');
+    $routes->post('saveSession', 'ChatbotController::saveSession');
+    $routes->post('saveMessage', 'ChatbotController::saveMessage');
+    $routes->get('getChatHistory', 'ChatbotController::getChatHistory');
+});
+
+// Admin Chatbot Conversations Routes (Protected)
+$routes->group('admin', ['filter' => 'adminAuth', 'namespace' => 'App\Controllers\Admin'], function($routes) {
+    $routes->get('chatbot-conversations', 'ChatbotConversationsController::index', ['as' => 'admin.chatbot-conversations']);
+    $routes->get('chatbot-conversations/getConversations', 'ChatbotConversationsController::getConversations');
+    $routes->get('chatbot-conversations/getConversationDetails/(:segment)', 'ChatbotConversationsController::getConversationDetails/$1');
+    $routes->post('chatbot-conversations/updateStatus', 'ChatbotConversationsController::updateStatus');
+    $routes->post('chatbot-conversations/deleteConversation', 'ChatbotConversationsController::deleteConversation');
+    $routes->get('chatbot-conversations/exportConversations', 'ChatbotConversationsController::exportConversations');
+    $routes->get('chatbot-conversations/getStatistics', 'ChatbotConversationsController::getStatistics');
+    
+    // FAQ Management Routes
+    $routes->get('faq', 'FAQController::index', ['as' => 'admin.faq']);
+    $routes->get('faq/create', 'FAQController::create', ['as' => 'admin.faq.create']);
+    $routes->post('faq/store', 'FAQController::store', ['as' => 'admin.faq.store']);
+    $routes->get('faq/edit/(:num)', 'FAQController::edit/$1', ['as' => 'admin.faq.edit']);
+    $routes->post('faq/update/(:num)', 'FAQController::update/$1', ['as' => 'admin.faq.update']);
+    $routes->get('faq/delete/(:num)', 'FAQController::delete/$1', ['as' => 'admin.faq.delete']);
+    $routes->post('faq/toggle-status/(:num)', 'FAQController::toggleStatus/$1', ['as' => 'admin.faq.toggleStatus']);
+    $routes->get('faq/search', 'FAQController::search', ['as' => 'admin.faq.search']);
+    $routes->get('faq/stats', 'FAQController::stats', ['as' => 'admin.faq.stats']);
+    
+    // Stock on Hand Management Routes
+    $routes->get('stock-on-hand', 'StockOnHandController::index', ['as' => 'admin.stock-on-hand']);
+    $routes->post('stock-on-hand/add-stock', 'StockOnHandController::addStock', ['as' => 'admin.stock-on-hand.add-stock']);
+    $routes->get('stock-on-hand/get-stock-summary', 'StockOnHandController::getStockSummary', ['as' => 'admin.stock-on-hand.summary']);
+    $routes->get('stock-on-hand/get-product-stock/(:num)', 'StockOnHandController::getProductStock/$1', ['as' => 'admin.stock-on-hand.product-stock']);
+    $routes->get('stock-on-hand/export-csv', 'StockOnHandController::exportCSV', ['as' => 'admin.stock-on-hand.export']);
+});

@@ -2172,6 +2172,36 @@ blockquote span:before {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
+}
+
+/* Hide mobile toggle on desktop - HIGH PRIORITY */
+@media only screen and (min-width: 769px) {
+  .geex-content__header .geex-content__header__mobile-toggle,
+  .geex-content__header__mobile-toggle {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    position: absolute !important;
+    left: -9999px !important;
+    pointer-events: none !important;
+  }
+  
+  .geex-content__header .geex-content__header__mobile-toggle__btn,
+  .geex-content__header__mobile-toggle__btn {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    position: absolute !important;
+    left: -9999px !important;
+    pointer-events: none !important;
+  }
+}
   gap: 10px;
   -webkit-box-align: center;
       -ms-flex-align: center;
