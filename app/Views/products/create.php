@@ -22,7 +22,7 @@
         </div>
         <div class="d-flex justify-content-between mt-2">
             <span class="step-indicator active" id="step1Indicator">
-                <i class="uil uil-check-circle"></i> Basic Info
+                <i class="uil uil-check-circle"></i> Basic Info (3 required)
             </span>
             <span class="step-indicator" id="step2Indicator">
                 <i class="uil uil-circle"></i> Additional Details
@@ -40,7 +40,7 @@
                         <i class="uil uil-info-circle me-2"></i>
                         Step 1: Basic Product Information
                     </h5>
-                    <small>Fill in the essential details to get your product online quickly</small>
+                    <small>Fill in the essential details to get your product online quickly (Only Product Name, Category, and Photo are required)</small>
                 </div>
                 <div class="card-body">
                     <!-- Product Name -->
@@ -87,22 +87,21 @@
                     <!-- Price -->
                     <div class="mb-4">
                         <label for="price" class="form-label fw-bold">
-                            <i class="uil uil-dollar-sign me-2"></i>Price *
+                            <i class="uil uil-dollar-sign me-2"></i>Price
                         </label>
                         <div class="input-group input-group-lg">
                             <span class="input-group-text">$</span>
                             <input type="number" step="0.01" class="form-control <?= session()->getFlashdata('errors.price') ? 'is-invalid' : '' ?>" 
                                    id="price" name="price" 
                                    value="<?= old('price') ?>" 
-                                   placeholder="0.00"
-                                   required>
+                                   placeholder="0.00">
                         </div>
                         <?php if (session()->getFlashdata('errors.price')): ?>
                             <div class="invalid-feedback">
                                 <?= session()->getFlashdata('errors.price') ?>
                             </div>
                         <?php endif; ?>
-                        <small class="text-muted">How much does this product cost?</small>
+                        <small class="text-muted">How much does this product cost? (Optional)</small>
                     </div>
 
                     <!-- Main Product Image -->
@@ -126,13 +125,12 @@
                                          <!-- Short Description -->
                      <div class="mb-4">
                          <label for="short_description" class="form-label fw-bold">
-                             <i class="uil uil-comment me-2"></i>Brief Description *
+                             <i class="uil uil-comment me-2"></i>Brief Description
                          </label>
                          <textarea class="form-control" id="short_description" name="short_description" 
                                    rows="3" 
-                                   placeholder="Describe your product in 2-3 sentences..."
-                                   required><?= old('short_description') ?></textarea>
-                         <small class="text-muted">Keep it short and appealing to customers</small>
+                                   placeholder="Describe your product in 2-3 sentences... (Optional)"><?= old('short_description') ?></textarea>
+                         <small class="text-muted">Keep it short and appealing to customers (Optional)</small>
                      </div>
 
                      <!-- Hidden SKU field for auto-generation -->
@@ -306,9 +304,10 @@ function previousStep() {
 
 // Validation for step 1
 function validateStep1() {
-    const requiredFields = ['product_name', 'product_category', 'price', 'image_icon', 'short_description'];
+    const requiredFields = ['product_name', 'product_category', 'image_icon'];
     let isValid = true;
     
+    // Check required fields
     requiredFields.forEach(fieldId => {
         const field = document.getElementById(fieldId);
         if (!field.value.trim()) {
@@ -319,8 +318,30 @@ function validateStep1() {
         }
     });
     
+    // Validate price if provided
+    const priceField = document.getElementById('price');
+    if (priceField.value.trim() && parseFloat(priceField.value) <= 0) {
+        priceField.classList.add('is-invalid');
+        isValid = false;
+        alert('Price must be greater than 0 if provided.');
+        return false;
+    } else {
+        priceField.classList.remove('is-invalid');
+    }
+    
+    // Validate short description if provided
+    const descField = document.getElementById('short_description');
+    if (descField.value.trim() && descField.value.trim().length < 10) {
+        descField.classList.add('is-invalid');
+        isValid = false;
+        alert('Brief description must be at least 10 characters if provided.');
+        return false;
+    } else {
+        descField.classList.remove('is-invalid');
+    }
+    
     if (!isValid) {
-        alert('Please fill in all required fields before continuing.');
+        alert('Please fill in all required fields before continuing.\n\nRequired: Product Name, Category, and Photo');
         window.scrollTo(0, 0);
     }
     

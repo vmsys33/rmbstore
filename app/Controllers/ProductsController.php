@@ -49,9 +49,9 @@ class ProductsController extends BaseController
         $validation->setRules([
             'product_name' => 'required|min_length[3]|max_length[255]',
             'product_category' => 'required|numeric',
-            'price' => 'required|numeric|greater_than[0]',
+            'price' => 'permit_empty|numeric|greater_than[0]',
             'image_icon' => 'required',
-            'short_description' => 'required|min_length[10]|max_length[500]',
+            'short_description' => 'permit_empty|min_length[10]|max_length[500]',
         ]);
 
         if (!$validation->withRequest($this->request)->run()) {
@@ -86,12 +86,12 @@ class ProductsController extends BaseController
             'product_name' => $this->request->getPost('product_name'),
             'sku' => $sku,
             'product_category' => $this->request->getPost('product_category'),
-            'price' => $this->request->getPost('price'),
+            'price' => $this->request->getPost('price') ?: null,
             'sale_price' => $this->request->getPost('sale_price') ?: null,
             'stock_quantity' => $this->request->getPost('stock_quantity') ?: 0,
             'weight' => $this->request->getPost('weight') ?: null,
             'dimensions' => $this->request->getPost('dimensions') ?: null,
-            'short_description' => $this->request->getPost('short_description'),
+            'short_description' => $this->request->getPost('short_description') ?: null,
             'description' => $this->request->getPost('description') ?: null,
             'status' => $this->request->getPost('status') ?: 'active',
             'featured' => $this->request->getPost('featured') ? 1 : 0,

@@ -29,9 +29,9 @@ class ProductModel extends Model
     protected $validationRules      = [
         'product_name' => 'required|min_length[2]|max_length[255]',
         'product_category' => 'required|integer|is_not_unique[categories.id]',
-        'price' => 'required|decimal',
-        'stock_quantity' => 'required|integer|greater_than_equal_to[0]',
-        'status' => 'required|in_list[active,inactive,draft]',
+        'price' => 'permit_empty|decimal',
+        'stock_quantity' => 'permit_empty|integer|greater_than_equal_to[0]',
+        'status' => 'permit_empty|in_list[active,inactive,draft]',
     ];
     protected $validationMessages   = [];
     protected $skipValidation       = false;
