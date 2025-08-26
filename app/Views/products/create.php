@@ -87,10 +87,10 @@
                     <!-- Price -->
                     <div class="mb-4">
                         <label for="price" class="form-label fw-bold">
-                            <i class="uil uil-dollar-sign me-2"></i>Price
+                            <i class="uil uil-money me-2"></i>Price
                         </label>
                         <div class="input-group input-group-lg">
-                            <span class="input-group-text">$</span>
+                            <span class="input-group-text"><?= currency_symbol() ?></span>
                             <input type="number" step="0.01" class="form-control <?= session()->getFlashdata('errors.price') ? 'is-invalid' : '' ?>" 
                                    id="price" name="price" 
                                    value="<?= old('price') ?>" 
@@ -171,10 +171,10 @@
                     <!-- Sale Price -->
                     <div class="mb-4">
                         <label for="sale_price" class="form-label fw-bold">
-                            <i class="uil uil-percentage me-2"></i>Sale Price
+                            <i class="uil uil-money me-2"></i>Sale Price
                         </label>
                         <div class="input-group input-group-lg">
-                            <span class="input-group-text">$</span>
+                            <span class="input-group-text"><?= currency_symbol() ?></span>
                             <input type="number" step="0.01" class="form-control" 
                                    id="sale_price" name="sale_price" 
                                    value="<?= old('sale_price') ?>" 
