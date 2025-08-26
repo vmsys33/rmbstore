@@ -88,7 +88,7 @@
                         <li><a href="<?= base_url('products') ?>">All Products</a></li>
                         <?php if (!empty($categories)): ?>
                             <?php foreach ($categories as $category): ?>
-                                <li><a href="<?= base_url('category/' . $category['id']) ?>"><?= esc($category['name']) ?></a></li>
+                                <li><a href="<?= base_url('products?category=' . $category['id']) ?>"><?= esc($category['name']) ?></a></li>
                             <?php endforeach; ?>
                         <?php endif; ?>
                     </ul>
@@ -157,7 +157,7 @@
                 <h5>Popular Categories</h5></li>
             <?php if (!empty($categories)): ?>
                 <?php foreach (array_slice($categories, 0, 6) as $category): ?>
-                    <li><a href="<?= base_url('category/' . $category['id']) ?>"><?= esc($category['name']) ?></a></li>
+                    <li><a href="<?= base_url('products?category=' . $category['id']) ?>"><?= esc($category['name']) ?></a></li>
                 <?php endforeach; ?>
             <?php endif; ?>
         </ul>
@@ -170,10 +170,24 @@
 	<div class="product-list segments-page">
 		<div class="container">
 			<div class="pages-title">
-				<h3>All Products</h3>
+				<h3><?= $title ?? 'All Products' ?></h3>
 				<!-- Product count caption -->
 				<span id="product-count" class="text-base font-normal text-gray-500 ml-2"></span>
 			</div>
+			
+			<!-- Selected Category Display -->
+			<?php if (!empty($selected_category)): ?>
+				<div class="selected-category-banner" style="background: #f5f5f5; padding: 15px; margin-bottom: 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+					<div>
+						<strong>Currently viewing:</strong> 
+						<span style="color: #2196F3; font-weight: bold;"><?= esc($selected_category['name']) ?></span>
+						<span style="color: #666; margin-left: 10px;">(<?= count($products) ?> products)</span>
+					</div>
+					<a href="<?= base_url('products') ?>" class="button" style="background: #ff5722; color: white; padding: 8px 16px; border-radius: 4px; text-decoration: none;">
+						<i class="fa fa-times"></i> Clear Filter
+					</a>
+				</div>
+			<?php endif; ?>
 			
 			<!-- Badges Container -->
 			<div id="badges-container" class="flex flex-wrap gap-2 mb-6 min-h-[40px]">
@@ -192,13 +206,13 @@
 							<h6><i class="fa fa-tags"></i> Categories</h6>
 							<div class="category-filters">
 								<div class="category-option">
-									<input type="radio" id="category-all" class="category-radio" name="category" value="all" checked>
+									<input type="radio" id="category-all" class="category-radio" name="category" value="all" <?= empty($selected_category) ? 'checked' : '' ?>>
 									<label for="category-all">All Categories</label>
 								</div>
 								<?php if (!empty($categories)): ?>
 									<?php foreach ($categories as $category): ?>
 										<div class="category-option">
-											<input type="radio" id="category-<?= esc($category['id']) ?>" class="category-radio" name="category" value="<?= esc($category['id']) ?>">
+											<input type="radio" id="category-<?= esc($category['id']) ?>" class="category-radio" name="category" value="<?= esc($category['id']) ?>" <?= (!empty($selected_category) && $selected_category['id'] == $category['id']) ? 'checked' : '' ?>>
 											<label for="category-<?= esc($category['id']) ?>"><?= esc($category['name']) ?></label>
 										</div>
 									<?php endforeach; ?>
@@ -435,12 +449,14 @@
 			console.log('🎯 Category filter changed:', e.target.value);
 			const value = e.target.value;
 			
-			// For radio buttons, we just need to update the current filter
-			currentFilters.category = value;
-			console.log('📊 Current filters after category change:', currentFilters);
+			// If "All Categories" is selected, redirect to products page without category
+			if (value === 'all') {
+				window.location.href = '<?= base_url('products') ?>';
+				return;
+			}
 			
-			renderBadges();
-			renderProducts();
+			// Redirect to products page with category parameter
+			window.location.href = '<?= base_url('products') ?>?category=' + value;
 		}
 		
 		// Handle price filter changes

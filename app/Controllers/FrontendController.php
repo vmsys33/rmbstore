@@ -61,12 +61,25 @@ class FrontendController extends BaseController
 
     public function products()
     {
+        // Get category filter from query parameter
+        $categoryId = $this->request->getGet('category');
+        
         $data = [
             'title' => 'All Products',
             'settings' => $this->settingsModel->getSettings(),
-            'products' => $this->productModel->getAllProducts(),
             'categories' => $this->categoryModel->getActiveCategories()
         ];
+        
+        if ($categoryId) {
+            // Filter products by category
+            $data['products'] = $this->productModel->getProductsByCategory($categoryId);
+            $data['selected_category'] = $this->categoryModel->find($categoryId);
+            $data['title'] = 'Products - ' . ($data['selected_category']['name'] ?? 'Category');
+        } else {
+            // Show all products
+            $data['products'] = $this->productModel->getAllProducts();
+            $data['selected_category'] = null;
+        }
 
         return view('frontend/products', $data);
     }

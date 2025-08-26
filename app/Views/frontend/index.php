@@ -99,7 +99,7 @@
                         <li><a href="<?= base_url('products') ?>">All Products</a></li>
                         <?php if (!empty($categories)): ?>
                             <?php foreach ($categories as $category): ?>
-                                <li><a href="<?= base_url('category/' . $category['id']) ?>"><?= esc($category['name']) ?></a></li>
+                                <li><a href="<?= base_url('products?category=' . $category['id']) ?>"><?= esc($category['name']) ?></a></li>
                             <?php endforeach; ?>
                         <?php endif; ?>
                     </ul>
@@ -141,7 +141,7 @@
                 <h5>Popular Categories</h5></li>
             <?php if (!empty($categories)): ?>
                 <?php foreach (array_slice($categories, 0, 6) as $category): ?>
-                    <li><a href="<?= base_url('category/' . $category['id']) ?>"><?= esc($category['name']) ?></a></li>
+                    <li><a href="<?= base_url('products?category=' . $category['id']) ?>"><?= esc($category['name']) ?></a></li>
                 <?php endforeach; ?>
             <?php endif; ?>
         </ul>

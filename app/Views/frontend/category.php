@@ -19,6 +19,10 @@
 
 </head>
 <body>
+	<script>
+		// Automatically redirect to products page with category filter
+		window.location.href = '<?= base_url('products?category=' . ($category['id'] ?? '')) ?>';
+	</script>
 	
 	<!-- navbar -->
 	<div class="navbar">
@@ -88,7 +92,7 @@
                         <li><a href="<?= base_url('products') ?>">All Products</a></li>
                         <?php if (!empty($categories)): ?>
                             <?php foreach ($categories as $cat): ?>
-                                <li><a href="<?= base_url('category/' . $cat['id']) ?>"><?= esc($cat['name']) ?></a></li>
+                                <li><a href="<?= base_url('products?category=' . $cat['id']) ?>"><?= esc($cat['name']) ?></a></li>
                             <?php endforeach; ?>
                         <?php endif; ?>
                     </ul>
@@ -157,7 +161,7 @@
                 <h5>Popular Categories</h5></li>
             <?php if (!empty($categories)): ?>
                 <?php foreach (array_slice($categories, 0, 6) as $cat): ?>
-                    <li><a href="<?= base_url('category/' . $cat['id']) ?>"><?= esc($cat['name']) ?></a></li>
+                    <li><a href="<?= base_url('products?category=' . $cat['id']) ?>"><?= esc($cat['name']) ?></a></li>
                 <?php endforeach; ?>
             <?php endif; ?>
         </ul>
