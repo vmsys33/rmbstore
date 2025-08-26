@@ -180,7 +180,9 @@
 				<div class="selected-category-banner" style="margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
 					<div class="category-pill-badge" style="background: linear-gradient(135deg, #2196F3, #1976D2); color: white; padding: 12px 20px; border-radius: 25px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3); font-weight: bold; font-size: 16px;">
 						<span>📚 <?= esc($selected_category['name']) ?></span>
-						<span style="color: #E3F2FD; font-size: 14px; font-weight: normal;">(<?= count($products) ?> products)</span>
+					</div>
+					<div class="product-count-badge" style="background: #E3F2FD; color: #1976D2; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 500; border: 2px solid #2196F3;">
+						<?= count($products) ?> products in this category
 					</div>
 					<a href="<?= base_url('products') ?>" class="pill-close-btn" style="background: linear-gradient(135deg, #FF5722, #E64A19); color: white; padding: 12px 16px; border-radius: 25px; text-decoration: none; display: flex; align-items: center; justify-content: center; width: 45px; height: 45px; box-shadow: 0 4px 12px rgba(255, 87, 34, 0.3); transition: all 0.3s ease; font-weight: bold; font-size: 20px;">
 						&times;
@@ -705,6 +707,20 @@
 		transform: scale(1.1) rotate(90deg);
 		box-shadow: 0 6px 20px rgba(255, 87, 34, 0.4);
 		background: linear-gradient(135deg, #E64A19, #D84315);
+	}
+
+	/* Product Count Badge Styling */
+	.product-count-badge {
+		transition: all 0.3s ease;
+		cursor: default;
+	}
+
+	.product-count-badge:hover {
+		transform: translateY(-1px);
+		box-shadow: 0 3px 10px rgba(33, 150, 243, 0.2);
+		background: #F3E5F5;
+		border-color: #9C27B0;
+		color: #7B1FA2;
 	}
 	</style>
 
