@@ -399,9 +399,30 @@ function handleImageUpload(input, previewId, type) {
                 box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             `;
             
-            // Add crop controls
+            // Add dimension info and crop controls
             const cropControls = document.createElement('div');
             cropControls.className = 'crop-controls mt-3';
+            
+            // Show dimension requirements
+            const dimensionInfo = document.createElement('div');
+            dimensionInfo.className = 'dimension-info mb-3 p-3 bg-light rounded';
+            dimensionInfo.innerHTML = `
+                <div class="row text-center">
+                    <div class="col-6">
+                        <strong>Required Size:</strong><br>
+                        <span class="badge bg-primary">${type === 'icon' ? '200 × 200px' : '400 × 300px'}</span>
+                    </div>
+                    <div class="col-6">
+                        <strong>Display:</strong><br>
+                        <span class="text-muted">${type === 'icon' ? 'Product icon (square)' : 'Product post image'}</span>
+                    </div>
+                </div>
+                <small class="text-muted d-block mt-2">
+                    <i class="uil uil-info-circle"></i> 
+                    ${type === 'icon' ? 'This will appear as a square icon on your product listings' : 'This will be displayed as a rectangular image on your product pages'}
+                </small>
+            `;
+            
             cropControls.innerHTML = `
                 <div class="btn-group btn-group-sm" role="group">
                     <button type="button" class="btn btn-outline-primary" onclick="rotateImage(this, -90)">
@@ -412,14 +433,17 @@ function handleImageUpload(input, previewId, type) {
                     </button>
                 </div>
                 <div class="mt-2">
-                    <button type="button" class="btn btn-success btn-sm" onclick="cropImage('${previewId}', '${type}')">
-                        <i class="uil uil-crop"></i> Crop & Save
+                    <button type="button" class="btn btn-success btn-sm" onclick="showCropInterface('${previewId}', '${type}')">
+                        <i class="uil uil-crop"></i> Select Crop Area
                     </button>
                     <button type="button" class="btn btn-secondary btn-sm ms-2" onclick="resetImage('${previewId}', '${input.id}')">
                         <i class="uil uil-refresh"></i> Reset
                     </button>
                 </div>
             `;
+            
+            cropContainer.appendChild(dimensionInfo);
+            cropContainer.appendChild(cropControls);
             
             cropContainer.appendChild(img);
             cropContainer.appendChild(cropControls);
@@ -442,10 +466,201 @@ function rotateImage(btn, degrees) {
     img.style.transform = `rotate(${newRotation}deg)`;
 }
 
-// Crop and save image function
-function cropImage(previewId, type) {
+// Show interactive crop interface
+function showCropInterface(previewId, type) {
     const preview = document.getElementById(previewId);
     const img = preview.querySelector('img');
+    const originalSrc = img.dataset.originalSrc;
+    
+    // Create crop overlay
+    const cropOverlay = document.createElement('div');
+    cropOverlay.className = 'crop-overlay';
+    cropOverlay.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        z-index: 10;
+    `;
+    
+    // Create crop frame
+    const cropFrame = document.createElement('div');
+    cropFrame.className = 'crop-frame';
+    cropFrame.style.cssText = `
+        position: absolute;
+        border: 2px solid #00ff00;
+        background: rgba(0,255,0,0.1);
+        cursor: move;
+        box-shadow: 0 0 20px rgba(0,255,0,0.5);
+    `;
+    
+    // Set initial crop frame size and position
+    const imgRect = img.getBoundingClientRect();
+    const containerRect = preview.getBoundingClientRect();
+    
+    let frameWidth, frameHeight;
+    if (type === 'icon') {
+        frameWidth = Math.min(200, imgRect.width * 0.8);
+        frameHeight = frameWidth; // Square
+    } else {
+        frameWidth = Math.min(400, imgRect.width * 0.8);
+        frameHeight = frameWidth * 0.75; // 4:3 ratio
+    }
+    
+    cropFrame.style.width = frameWidth + 'px';
+    cropFrame.style.height = frameHeight + 'px';
+    cropFrame.style.left = (imgRect.width - frameWidth) / 2 + 'px';
+    cropFrame.style.top = (imgRect.height - frameHeight) / 2 + 'px';
+    
+    // Add resize handles
+    const resizeHandle = document.createElement('div');
+    resizeHandle.className = 'resize-handle';
+    resizeHandle.style.cssText = `
+        position: absolute;
+        bottom: -10px;
+        right: -10px;
+        width: 20px;
+        height: 20px;
+        background: #00ff00;
+        border-radius: 50%;
+        cursor: nw-resize;
+        border: 2px solid white;
+    `;
+    cropFrame.appendChild(resizeHandle);
+    
+    // Add crop controls
+    const cropActions = document.createElement('div');
+    cropActions.className = 'crop-actions';
+    cropActions.style.cssText = `
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 20;
+    `;
+    cropActions.innerHTML = `
+        <div class="btn-group">
+            <button type="button" class="btn btn-success btn-sm" onclick="applyCrop('${previewId}', '${type}')">
+                <i class="uil uil-check"></i> Apply Crop
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="cancelCrop('${previewId}')">
+                <i class="uil uil-times"></i> Cancel
+            </button>
+        </div>
+    `;
+    
+    // Make crop frame draggable
+    let isDragging = false;
+    let startX, startY, startLeft, startTop;
+    
+    cropFrame.addEventListener('mousedown', function(e) {
+        if (e.target === resizeHandle) return;
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        startLeft = parseInt(cropFrame.style.left);
+        startTop = parseInt(cropFrame.style.top);
+        cropFrame.style.cursor = 'grabbing';
+    });
+    
+    document.addEventListener('mousemove', function(e) {
+        if (!isDragging) return;
+        
+        const deltaX = e.clientX - startX;
+        const deltaY = e.clientY - startY;
+        
+        let newLeft = startLeft + deltaX;
+        let newTop = startTop + deltaY;
+        
+        // Constrain to image bounds
+        newLeft = Math.max(0, Math.min(newLeft, imgRect.width - frameWidth));
+        newTop = Math.max(0, Math.min(newTop, imgRect.height - frameHeight));
+        
+        cropFrame.style.left = newLeft + 'px';
+        cropFrame.style.top = newTop + 'px';
+    });
+    
+    document.addEventListener('mouseup', function() {
+        isDragging = false;
+        cropFrame.style.cursor = 'move';
+    });
+    
+    // Make crop frame resizable
+    let isResizing = false;
+    let startResizeX, startResizeY, startWidth, startHeight;
+    
+    resizeHandle.addEventListener('mousedown', function(e) {
+        e.stopPropagation();
+        isResizing = true;
+        startResizeX = e.clientX;
+        startResizeY = e.clientY;
+        startWidth = parseInt(cropFrame.style.width);
+        startHeight = parseInt(cropFrame.style.height);
+    });
+    
+    document.addEventListener('mousemove', function(e) {
+        if (!isResizing) return;
+        
+        const deltaX = e.clientX - startResizeX;
+        const deltaY = e.clientY - startResizeY;
+        
+        let newWidth = startWidth + deltaX;
+        let newHeight = startHeight + deltaY;
+        
+        // Maintain aspect ratio
+        if (type === 'icon') {
+            newHeight = newWidth; // Square
+        } else {
+            newHeight = newWidth * 0.75; // 4:3 ratio
+        }
+        
+        // Constrain minimum size
+        newWidth = Math.max(100, newWidth);
+        newHeight = Math.max(75, newHeight);
+        
+        // Constrain to image bounds
+        const maxWidth = imgRect.width - parseInt(cropFrame.style.left);
+        const maxHeight = imgRect.height - parseInt(cropFrame.style.top);
+        newWidth = Math.min(newWidth, maxWidth);
+        newHeight = Math.min(newHeight, maxHeight);
+        
+        cropFrame.style.width = newWidth + 'px';
+        cropFrame.style.height = newHeight + 'px';
+    });
+    
+    document.addEventListener('mouseup', function() {
+        isResizing = false;
+    });
+    
+    cropOverlay.appendChild(cropFrame);
+    cropOverlay.appendChild(cropActions);
+    
+    // Position the container relatively for absolute positioning
+    const container = preview.querySelector('.crop-container');
+    container.style.position = 'relative';
+    container.appendChild(cropOverlay);
+    
+    // Store crop data for later use
+    cropFrame.dataset.cropData = JSON.stringify({
+        left: parseInt(cropFrame.style.left),
+        top: parseInt(cropFrame.style.top),
+        width: parseInt(cropFrame.style.width),
+        height: parseInt(cropFrame.style.height)
+    });
+}
+
+// Apply the crop based on user selection
+function applyCrop(previewId, type) {
+    const preview = document.getElementById(previewId);
+    const img = preview.querySelector('img');
+    const cropFrame = preview.querySelector('.crop-frame');
+    const cropOverlay = preview.querySelector('.crop-overlay');
+    
+    if (!cropFrame) return;
+    
+    const cropData = JSON.parse(cropFrame.dataset.cropData);
     const originalSrc = img.dataset.originalSrc;
     
     // Create canvas for cropping
@@ -464,25 +679,15 @@ function cropImage(previewId, type) {
     // Create temporary image for processing
     const tempImg = new Image();
     tempImg.onload = function() {
-        // Calculate crop dimensions
-        const imgAspect = tempImg.width / tempImg.height;
-        const canvasAspect = canvas.width / canvas.height;
+        // Calculate crop dimensions relative to original image
+        const imgRect = img.getBoundingClientRect();
+        const scaleX = tempImg.width / imgRect.width;
+        const scaleY = tempImg.height / imgRect.height;
         
-        let cropWidth, cropHeight, cropX, cropY;
-        
-        if (imgAspect > canvasAspect) {
-            // Image is wider than canvas
-            cropHeight = tempImg.height;
-            cropWidth = tempImg.height * canvasAspect;
-            cropX = (tempImg.width - cropWidth) / 2;
-            cropY = 0;
-        } else {
-            // Image is taller than canvas
-            cropWidth = tempImg.width;
-            cropHeight = tempImg.width / canvasAspect;
-            cropX = 0;
-            cropY = (tempImg.height - cropHeight) / 2;
-        }
+        const cropX = cropData.left * scaleX;
+        const cropY = cropData.top * scaleY;
+        const cropWidth = cropData.width * scaleX;
+        const cropHeight = cropData.height * scaleY;
         
         // Apply rotation and crop
         ctx.save();
@@ -497,16 +702,26 @@ function cropImage(previewId, type) {
             const croppedFile = new File([blob], 'cropped_image.jpg', { type: 'image/jpeg' });
             
             // Update the file input
-            const fileInput = document.querySelector(`#${previewId}`).closest('.col-12').querySelector('input[type="file"]');
+            const fileInput = preview.closest('.col-12').querySelector('input[type="file"]');
             const dataTransfer = new DataTransfer();
             dataTransfer.items.add(croppedFile);
             fileInput.files = dataTransfer.files;
             
             // Show final preview
             showFinalPreview(previewId, canvas.toDataURL(), type);
+            
+            // Remove crop overlay
+            if (cropOverlay) cropOverlay.remove();
         }, 'image/jpeg', 0.9);
     };
     tempImg.src = originalSrc;
+}
+
+// Cancel crop operation
+function cancelCrop(previewId) {
+    const preview = document.getElementById(previewId);
+    const cropOverlay = preview.querySelector('.crop-overlay');
+    if (cropOverlay) cropOverlay.remove();
 }
 
 // Show final cropped preview
@@ -727,6 +942,41 @@ document.getElementById('productForm').addEventListener('submit', function(e) {
     border-radius: 12px;
     padding: 20px;
     margin: 15px 0;
+    position: relative;
+}
+
+.dimension-info {
+    border-left: 4px solid #007bff;
+}
+
+.crop-overlay {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.crop-frame {
+    transition: all 0.2s ease;
+}
+
+.crop-frame:hover {
+    border-color: #00ff88;
+    box-shadow: 0 0 25px rgba(0,255,136,0.6);
+}
+
+.resize-handle {
+    transition: all 0.2s ease;
+}
+
+.resize-handle:hover {
+    background: #00ff88 !important;
+    transform: scale(1.2);
+}
+
+.crop-actions {
+    background: rgba(0,0,0,0.8);
+    padding: 10px 20px;
+    border-radius: 25px;
+    backdrop-filter: blur(10px);
 }
 
 .crop-controls .btn-group {
