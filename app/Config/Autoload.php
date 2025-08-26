@@ -77,11 +77,12 @@ class Autoload extends AutoloadConfig
      *
      * @var list<string>
      */
-    public $files = [];
+    public $files = [
+        APPPATH . 'Helpers/GlobalCurrencyHelper.php',
+    ];
 
     /**
      * -------------------------------------------------------------------
-     * Helpers
      * -------------------------------------------------------------------
      * Prototype:
      *   $helpers = [
@@ -90,5 +91,7 @@ class Autoload extends AutoloadConfig
      *
      * @var list<string>
      */
-    public $helpers = [];
+    public $helpers = [
+        'currency_helper',
+    ];
 }
