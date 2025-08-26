@@ -44,15 +44,14 @@ class ProductsController extends BaseController
 
     public function store()
     {
-        // Validate required fields
+        // Validate required fields for step 1
         $validation = \Config\Services::validation();
         $validation->setRules([
             'product_name' => 'required|min_length[3]|max_length[255]',
-            'sku' => 'required|min_length[3]|max_length[50]|is_unique[products.sku]',
             'product_category' => 'required|numeric',
-            'price' => 'permit_empty|numeric|greater_than[0]',
-            'stock_quantity' => 'required|numeric|greater_than_equal_to[0]',
-            'status' => 'required|in_list[active,inactive,draft]',
+            'price' => 'required|numeric|greater_than[0]',
+            'image_icon' => 'required',
+            'short_description' => 'required|min_length[10]|max_length[500]',
         ]);
 
         if (!$validation->withRequest($this->request)->run()) {
@@ -61,7 +60,6 @@ class ProductsController extends BaseController
 
         // Handle image uploads
         $imageIcon = null;
-        $imagePost = null;
 
         // Upload icon image
         $iconFile = $this->request->getFile('image_icon');
@@ -74,32 +72,31 @@ class ProductsController extends BaseController
             }
         }
 
-        // Upload post image
-        $postFile = $this->request->getFile('image_post');
-        if ($postFile && $postFile->isValid()) {
-            $uploadResult = ImageUploadHelper::uploadProductImage($postFile, 'post');
-            if ($uploadResult['success']) {
-                $imagePost = $uploadResult['path'];
-            } else {
-                return redirect()->back()->withInput()->with('error', 'Post image: ' . $uploadResult['message']);
-            }
+        // Post image not used in new form structure
+
+        // Auto-generate SKU if not provided
+        $sku = $this->request->getPost('sku');
+        if (!$sku) {
+            $productName = $this->request->getPost('product_name');
+            $sku = strtoupper(preg_replace('/[^A-Z0-9]/', '', $productName));
+            $sku = substr($sku, 0, 8) . '-' . strtoupper(substr(md5(uniqid()), 0, 4));
         }
 
         $data = [
             'product_name' => $this->request->getPost('product_name'),
-            'sku' => $this->request->getPost('sku'),
+            'sku' => $sku,
             'product_category' => $this->request->getPost('product_category'),
-            'price' => $this->request->getPost('price') ?: null,
+            'price' => $this->request->getPost('price'),
             'sale_price' => $this->request->getPost('sale_price') ?: null,
-            'stock_quantity' => $this->request->getPost('stock_quantity'),
+            'stock_quantity' => $this->request->getPost('stock_quantity') ?: 0,
             'weight' => $this->request->getPost('weight') ?: null,
             'dimensions' => $this->request->getPost('dimensions') ?: null,
-            'short_description' => $this->request->getPost('short_description') ?: null,
+            'short_description' => $this->request->getPost('short_description'),
             'description' => $this->request->getPost('description') ?: null,
-            'status' => $this->request->getPost('status'),
+            'status' => $this->request->getPost('status') ?: 'active',
             'featured' => $this->request->getPost('featured') ? 1 : 0,
             'image_icon' => $imageIcon,
-            'image_post' => $imagePost,
+            'image_post' => null, // Not used in new form
         ];
 
         // Insert product
