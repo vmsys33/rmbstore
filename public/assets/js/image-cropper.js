@@ -1,6 +1,6 @@
 /**
  * Reusable Image Cropper Library
- * Based on Cropper.js for easy image cropping functionality
+ * Based on the user's tested and working Cropper.js implementation
  */
 class ImageCropper {
     constructor(options = {}) {
@@ -74,7 +74,7 @@ class ImageCropper {
                     width: 600px;
                     text-align: center;
                     position: relative;
-                    overflow: hidden;
+                    overflow: visible;
                 }
 
                 .image-cropper-header {
@@ -86,7 +86,7 @@ class ImageCropper {
 
                 .image-cropper-area {
                     width: 100%;
-                    max-height: 500px;
+                    max-height: 400px;
                     margin: 1.5rem 0;
                     overflow: hidden;
                 }
@@ -162,6 +162,11 @@ class ImageCropper {
                     .image-cropper-container {
                         padding: 1rem;
                         margin: 10px;
+                        max-height: 95vh;
+                    }
+                    
+                    .image-cropper-area {
+                        max-height: 300px;
                     }
                     
                     .image-cropper-buttons {

@@ -193,16 +193,13 @@
                                 <div class="mb-3">
                                     <label for="currency" class="form-label">Currency</label>
                                     <select class="form-select" id="currency" name="currency">
-                                        <option value="USD" <?= old('currency', $settings['currency'] ?? 'USD') === 'USD' ? 'selected' : '' ?>>$ USD (US Dollar)</option>
-                                        <option value="EUR" <?= old('currency', $settings['currency'] ?? 'USD') === 'EUR' ? 'selected' : '' ?>>€ EUR (Euro)</option>
-                                        <option value="GBP" <?= old('currency', $settings['currency'] ?? 'USD') === 'GBP' ? 'selected' : '' ?>>£ GBP (British Pound)</option>
-                                        <option value="JPY" <?= old('currency', $settings['currency'] ?? 'USD') === 'JPY' ? 'selected' : '' ?>>¥ JPY (Japanese Yen)</option>
-                                        <option value="CAD" <?= old('currency', $settings['currency'] ?? 'USD') === 'CAD' ? 'selected' : '' ?>>$ CAD (Canadian Dollar)</option>
-                                        <option value="AUD" <?= old('currency', $settings['currency'] ?? 'USD') === 'AUD' ? 'selected' : '' ?>>$ AUD (Australian Dollar)</option>
-                                        <option value="CHF" <?= old('currency', $settings['currency'] ?? 'USD') === 'CHF' ? 'selected' : '' ?>>₣ CHF (Swiss Franc)</option>
-                                        <option value="CNY" <?= old('currency', $settings['currency'] ?? 'USD') === 'CNY' ? 'selected' : '' ?>>¥ CNY (Chinese Yuan)</option>
-                                        <option value="INR" <?= old('currency', $settings['currency'] ?? 'USD') === 'INR' ? 'selected' : '' ?>>₹ INR (Indian Rupee)</option>
-                                        <option value="PHP" <?= old('currency', $settings['currency'] ?? 'USD') === 'PHP' ? 'selected' : '' ?>>₱ PHP (Philippine Peso)</option>
+                                        <?php 
+                                        $currencyService = \App\Services\CurrencyService::getInstance();
+                                        $currentCurrency = old('currency', $settings['currency'] ?? 'USD');
+                                        foreach ($currencyService->getCurrencyOptions() as $code => $label): 
+                                        ?>
+                                            <option value="<?= $code ?>" <?= $currentCurrency === $code ? 'selected' : '' ?>><?= $label ?></option>
+                                        <?php endforeach; ?>
                                     </select>
                                 </div>
                             </div>

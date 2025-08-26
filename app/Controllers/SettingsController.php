@@ -145,6 +145,14 @@ class SettingsController extends BaseController
             return redirect()->back()->withInput()->with('error', 'Failed to save settings');
         }
 
+        // Refresh currency cache after settings update
+        try {
+            \App\Services\CurrencyService::getInstance()->refresh();
+            \App\Helpers\CurrencyHelper::clearCache();
+        } catch (\Exception $e) {
+            log_message('warning', 'Failed to refresh currency cache: ' . $e->getMessage());
+        }
+
         log_message('info', 'Settings saved successfully: ' . json_encode($data));
         return redirect()->to('/admin/settings')->with('success', 'Settings updated successfully');
         } catch (\Exception $e) {
