@@ -118,7 +118,7 @@
                                 <small class="text-muted">Recommended: Square image, Max: 2MB</small>
                             </div>
                             <input type="file" class="form-control d-none" id="image_icon" name="image_icon" 
-                                   accept="image/*" onchange="previewImage(this, 'icon-preview')" required>
+                                   accept="image/*" onchange="handleImageUpload(this, 'icon-preview', 'icon')" required>
                         </div>
                         <div class="image-preview mt-3" id="icon-preview"></div>
                     </div>
@@ -210,6 +210,24 @@
                         <small class="text-muted">Choose when customers can see this product</small>
                     </div>
 
+                    <!-- Post Image -->
+                    <div class="mb-4">
+                        <label for="image_post" class="form-label fw-bold">
+                            <i class="uil uil-image-plus me-2"></i>Post Image
+                        </label>
+                        <div class="image-upload-container">
+                            <div class="upload-area" id="postUploadArea">
+                                <i class="uil uil-image-plus upload-icon"></i>
+                                <p class="upload-text">Add a post image</p>
+                                <p class="upload-hint">Recommended: 400x300px</p>
+                                <small class="text-muted">Max: 5MB</small>
+                            </div>
+                            <input type="file" class="form-control d-none" id="image_post" name="image_post" 
+                                   accept="image/*" onchange="handleImageUpload(this, 'post-preview', 'post')">
+                        </div>
+                        <div class="image-preview mt-3" id="post-preview"></div>
+                    </div>
+
                     <!-- Gallery Images -->
                     <div class="mb-4">
                         <label for="gallery_images" class="form-label fw-bold">
@@ -223,7 +241,7 @@
                                 <small class="text-muted">Max: 10MB each</small>
                             </div>
                             <input type="file" class="form-control d-none" id="gallery_images" name="gallery_images[]" 
-                                   accept="image/*" multiple onchange="previewGalleryImages(this)">
+                                   accept="image/*" multiple onchange="handleGalleryImages(this)">
                         </div>
                         <div class="gallery-preview mt-3" id="gallery-preview"></div>
                     </div>
@@ -333,8 +351,12 @@ document.getElementById('galleryUploadArea').addEventListener('click', function(
     document.getElementById('gallery_images').click();
 });
 
-// Image preview function
-function previewImage(input, previewId) {
+document.getElementById('postUploadArea').addEventListener('click', function() {
+    document.getElementById('image_post').click();
+});
+
+// Enhanced image handling with cropping
+function handleImageUpload(input, previewId, type) {
     const preview = document.getElementById(previewId);
     preview.innerHTML = '';
     
@@ -342,9 +364,9 @@ function previewImage(input, previewId) {
         const file = input.files[0];
         
         // Validate file size
-        const maxSize = 2 * 1024 * 1024; // 2MB
+        const maxSize = type === 'icon' ? 2 * 1024 * 1024 : 5 * 1024 * 1024; // 2MB for icon, 5MB for post
         if (file.size > maxSize) {
-            alert('File size too large. Maximum 2MB allowed.');
+            alert(`File size too large. Maximum ${maxSize / 1024 / 1024}MB allowed.`);
             input.value = '';
             return;
         }
@@ -358,31 +380,179 @@ function previewImage(input, previewId) {
         
         const reader = new FileReader();
         reader.onload = function(e) {
+            // Create cropping interface
+            const cropContainer = document.createElement('div');
+            cropContainer.className = 'crop-container';
+            cropContainer.style.cssText = `
+                max-width: 400px;
+                margin: 0 auto;
+                text-align: center;
+            `;
+            
             const img = document.createElement('img');
             img.src = e.target.result;
-            img.className = 'img-thumbnail';
-            img.style.maxWidth = '200px';
-            img.style.maxHeight = '200px';
+            img.className = 'img-fluid';
+            img.style.cssText = `
+                max-width: 100%;
+                max-height: 300px;
+                border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            `;
             
-            const removeBtn = document.createElement('button');
-            removeBtn.type = 'button';
-            removeBtn.className = 'btn btn-sm btn-danger mt-2';
-            removeBtn.innerHTML = '<i class="uil uil-trash-alt me-1"></i>Remove';
-            removeBtn.onclick = function() {
-                input.value = '';
-                preview.innerHTML = '';
-            };
+            // Add crop controls
+            const cropControls = document.createElement('div');
+            cropControls.className = 'crop-controls mt-3';
+            cropControls.innerHTML = `
+                <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-outline-primary" onclick="rotateImage(this, -90)">
+                        <i class="uil uil-undo"></i> Rotate Left
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" onclick="rotateImage(this, 90)">
+                        <i class="uil uil-redo"></i> Rotate Right
+                    </button>
+                </div>
+                <div class="mt-2">
+                    <button type="button" class="btn btn-success btn-sm" onclick="cropImage('${previewId}', '${type}')">
+                        <i class="uil uil-crop"></i> Crop & Save
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm ms-2" onclick="resetImage('${previewId}', '${input.id}')">
+                        <i class="uil uil-refresh"></i> Reset
+                    </button>
+                </div>
+            `;
             
-            preview.appendChild(img);
-            preview.appendChild(document.createElement('br'));
-            preview.appendChild(removeBtn);
+            cropContainer.appendChild(img);
+            cropContainer.appendChild(cropControls);
+            preview.appendChild(cropContainer);
+            
+            // Store original image data for rotation
+            img.dataset.originalSrc = e.target.result;
+            img.dataset.rotation = '0';
         };
         reader.readAsDataURL(file);
     }
 }
 
-// Gallery images preview function
-function previewGalleryImages(input) {
+// Rotate image function
+function rotateImage(btn, degrees) {
+    const img = btn.closest('.crop-container').querySelector('img');
+    const currentRotation = parseInt(img.dataset.rotation) || 0;
+    const newRotation = currentRotation + degrees;
+    img.dataset.rotation = newRotation;
+    img.style.transform = `rotate(${newRotation}deg)`;
+}
+
+// Crop and save image function
+function cropImage(previewId, type) {
+    const preview = document.getElementById(previewId);
+    const img = preview.querySelector('img');
+    const originalSrc = img.dataset.originalSrc;
+    
+    // Create canvas for cropping
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Set canvas size based on type
+    if (type === 'icon') {
+        canvas.width = 200;
+        canvas.height = 200;
+    } else {
+        canvas.width = 400;
+        canvas.height = 300;
+    }
+    
+    // Create temporary image for processing
+    const tempImg = new Image();
+    tempImg.onload = function() {
+        // Calculate crop dimensions
+        const imgAspect = tempImg.width / tempImg.height;
+        const canvasAspect = canvas.width / canvas.height;
+        
+        let cropWidth, cropHeight, cropX, cropY;
+        
+        if (imgAspect > canvasAspect) {
+            // Image is wider than canvas
+            cropHeight = tempImg.height;
+            cropWidth = tempImg.height * canvasAspect;
+            cropX = (tempImg.width - cropWidth) / 2;
+            cropY = 0;
+        } else {
+            // Image is taller than canvas
+            cropWidth = tempImg.width;
+            cropHeight = tempImg.width / canvasAspect;
+            cropX = 0;
+            cropY = (tempImg.height - cropHeight) / 2;
+        }
+        
+        // Apply rotation and crop
+        ctx.save();
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate((parseInt(img.dataset.rotation) || 0) * Math.PI / 180);
+        ctx.drawImage(tempImg, cropX, cropY, cropWidth, cropHeight, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
+        ctx.restore();
+        
+        // Convert to blob and create file
+        canvas.toBlob(function(blob) {
+            // Create a new file input with the cropped image
+            const croppedFile = new File([blob], 'cropped_image.jpg', { type: 'image/jpeg' });
+            
+            // Update the file input
+            const fileInput = document.querySelector(`#${previewId}`).closest('.col-12').querySelector('input[type="file"]');
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(croppedFile);
+            fileInput.files = dataTransfer.files;
+            
+            // Show final preview
+            showFinalPreview(previewId, canvas.toDataURL(), type);
+        }, 'image/jpeg', 0.9);
+    };
+    tempImg.src = originalSrc;
+}
+
+// Show final cropped preview
+function showFinalPreview(previewId, imageData, type) {
+    const preview = document.getElementById(previewId);
+    preview.innerHTML = '';
+    
+    const finalContainer = document.createElement('div');
+    finalContainer.className = 'final-preview text-center';
+    
+    const img = document.createElement('img');
+    img.src = imageData;
+    img.className = 'img-thumbnail';
+    img.style.cssText = `
+        max-width: ${type === 'icon' ? '150px' : '200px'};
+        max-height: ${type === 'icon' ? '150px' : '150px'};
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    `;
+    
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'btn btn-sm btn-danger mt-2';
+    removeBtn.innerHTML = '<i class="uil uil-trash-alt me-1"></i>Remove';
+    removeBtn.onclick = function() {
+        const fileInput = preview.closest('.col-12').querySelector('input[type="file"]');
+        fileInput.value = '';
+        preview.innerHTML = '';
+    };
+    
+    finalContainer.appendChild(img);
+    finalContainer.appendChild(document.createElement('br'));
+    finalContainer.appendChild(removeBtn);
+    preview.appendChild(finalContainer);
+}
+
+// Reset image function
+function resetImage(previewId, inputId) {
+    const preview = document.getElementById(previewId);
+    const input = document.getElementById(inputId);
+    input.value = '';
+    preview.innerHTML = '';
+}
+
+// Enhanced gallery images handling
+function handleGalleryImages(input) {
     const preview = document.getElementById('gallery-preview');
     preview.innerHTML = '';
     
@@ -412,26 +582,41 @@ function previewGalleryImages(input) {
             const reader = new FileReader();
             reader.onload = function(e) {
                 const container = document.createElement('div');
-                container.className = 'd-inline-block me-2 mb-2';
+                container.className = 'gallery-item d-inline-block me-2 mb-2';
                 container.style.position = 'relative';
                 
                 const img = document.createElement('img');
                 img.src = e.target.result;
                 img.className = 'img-thumbnail';
-                img.style.width = '100px';
-                img.style.height = '100px';
-                img.style.objectFit = 'cover';
+                img.style.cssText = `
+                    width: 120px;
+                    height: 80px;
+                    object-fit: cover;
+                    border-radius: 8px;
+                    cursor: pointer;
+                `;
+                
+                // Add click to enlarge
+                img.onclick = function() {
+                    showImageModal(e.target.result, 'Gallery Image');
+                };
                 
                 const removeBtn = document.createElement('button');
                 removeBtn.type = 'button';
                 removeBtn.className = 'btn btn-sm btn-danger';
-                removeBtn.style.position = 'absolute';
-                removeBtn.style.top = '-5px';
-                removeBtn.style.right = '-5px';
-                removeBtn.style.borderRadius = '50%';
-                removeBtn.style.width = '25px';
-                removeBtn.style.height = '25px';
-                removeBtn.style.padding = '0';
+                removeBtn.style.cssText = `
+                    position: absolute;
+                    top: -8px;
+                    right: -8px;
+                    border-radius: 50%;
+                    width: 24px;
+                    height: 24px;
+                    padding: 0;
+                    font-size: 14px;
+                    line-height: 1;
+                    border: 2px solid white;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                `;
                 removeBtn.innerHTML = '×';
                 removeBtn.onclick = function() {
                     container.remove();
@@ -444,6 +629,74 @@ function previewGalleryImages(input) {
             reader.readAsDataURL(file);
         });
     }
+}
+
+// Image modal for gallery images
+function showImageModal(imageSrc, title) {
+    const modal = document.createElement('div');
+    modal.className = 'image-modal';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.9);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    `;
+    
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+        position: relative;
+        max-width: 90%;
+        max-height: 90%;
+        text-align: center;
+    `;
+    
+    const img = document.createElement('img');
+    img.src = imageSrc;
+    img.style.cssText = `
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    `;
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.innerHTML = '×';
+    closeBtn.style.cssText = `
+        position: absolute;
+        top: -40px;
+        right: 0;
+        background: none;
+        border: none;
+        color: white;
+        font-size: 30px;
+        cursor: pointer;
+        padding: 0;
+        width: 40px;
+        height: 40px;
+    `;
+    closeBtn.onclick = function() {
+        document.body.removeChild(modal);
+    };
+    
+    modalContent.appendChild(img);
+    modalContent.appendChild(closeBtn);
+    modal.appendChild(modalContent);
+    
+    // Close on background click
+    modal.onclick = function(e) {
+        if (e.target === modal) {
+            document.body.removeChild(modal);
+        }
+    };
+    
+    document.body.appendChild(modal);
 }
 
 // Form submission
@@ -468,6 +721,48 @@ document.getElementById('productForm').addEventListener('submit', function(e) {
 </script>
 
 <style>
+/* Enhanced image cropping styles */
+.crop-container {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 15px 0;
+}
+
+.crop-controls .btn-group {
+    margin-bottom: 10px;
+}
+
+.crop-controls .btn {
+    font-size: 12px;
+    padding: 6px 12px;
+}
+
+.final-preview img {
+    transition: transform 0.2s ease;
+}
+
+.final-preview img:hover {
+    transform: scale(1.05);
+}
+
+.gallery-item img {
+    transition: transform 0.2s ease;
+}
+
+.gallery-item img:hover {
+    transform: scale(1.1);
+}
+
+.image-modal {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
 /* Mobile-first responsive design */
 .step-progress {
     background: #f8f9fa;
