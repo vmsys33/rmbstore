@@ -177,14 +177,13 @@
 			
 			<!-- Selected Category Display -->
 			<?php if (!empty($selected_category)): ?>
-				<div class="selected-category-banner" style="background: #f5f5f5; padding: 15px; margin-bottom: 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
-					<div>
-						<strong>Currently viewing:</strong> 
-						<span style="color: #2196F3; font-weight: bold;"><?= esc($selected_category['name']) ?></span>
-						<span style="color: #666; margin-left: 10px;">(<?= count($products) ?> products)</span>
+				<div class="selected-category-banner" style="margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
+					<div class="category-pill-badge" style="background: linear-gradient(135deg, #2196F3, #1976D2); color: white; padding: 12px 20px; border-radius: 25px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3); font-weight: bold; font-size: 16px;">
+						<span>📚 <?= esc($selected_category['name']) ?></span>
+						<span style="color: #E3F2FD; font-size: 14px; font-weight: normal;">(<?= count($products) ?> products)</span>
 					</div>
-					<a href="<?= base_url('products') ?>" class="button" style="background: #ff5722; color: white; padding: 8px 16px; border-radius: 4px; text-decoration: none;">
-						<i class="fa fa-times"></i> Clear Filter
+					<a href="<?= base_url('products') ?>" class="pill-close-btn" style="background: linear-gradient(135deg, #FF5722, #E64A19); color: white; padding: 12px 16px; border-radius: 25px; text-decoration: none; display: flex; align-items: center; justify-content: center; width: 45px; height: 45px; box-shadow: 0 4px 12px rgba(255, 87, 34, 0.3); transition: all 0.3s ease; font-weight: bold; font-size: 20px;">
+						&times;
 					</a>
 				</div>
 			<?php endif; ?>
@@ -414,6 +413,9 @@
 					// Reset category radio button if it's a category filter
 					if (key === 'category') {
 						document.querySelector('.category-radio[value="all"]').checked = true;
+						// Redirect to products page without category filter
+						window.location.href = '<?= base_url('products') ?>';
+						return;
 					}
 					
 					// Reset price filter if it's a price filter
@@ -599,16 +601,17 @@
 			// Render category badge if a filter is active
 			if (currentFilters.category !== 'all') {
 				const badge = document.createElement('div');
-				badge.className = 'badge bg-blue-500 text-white px-4 py-2 rounded-full cursor-pointer flex items-center gap-2 transform hover:scale-105';
+				badge.className = 'badge bg-blue-500 text-white px-4 py-2 rounded-full cursor-pointer flex items-center gap-2 transform hover:scale-105 hover:bg-blue-600 transition-all duration-200';
 				badge.setAttribute('data-filter-key', 'category');
 				badge.setAttribute('data-filter-value', currentFilters.category);
+				badge.title = 'Click to remove this filter';
 				
 				// Get category name
 				const categoryName = document.querySelector(`.category-radio[value="${currentFilters.category}"] + label`).textContent;
 				
 				badge.innerHTML = `
 					<span>Category: ${categoryName}</span>
-					<span class="font-bold text-lg leading-none hover:text-gray-300">&times;</span>
+					<span class="font-bold text-lg leading-none hover:text-gray-300 transition-colors">&times;</span>
 				`;
 				badgesContainer.appendChild(badge);
 			}
@@ -616,16 +619,17 @@
 			// Render price badge if a filter is active
 			if (currentFilters.price !== 'all') {
 				const badge = document.createElement('div');
-				badge.className = 'badge bg-green-500 text-white px-4 py-2 rounded-full cursor-pointer flex items-center gap-2 transform hover:scale-105';
+				badge.className = 'badge bg-green-500 text-white px-4 py-2 rounded-full cursor-pointer flex items-center gap-2 transform hover:scale-105 hover:bg-green-600 transition-all duration-200';
 				badge.setAttribute('data-filter-key', 'price');
 				badge.setAttribute('data-filter-value', currentFilters.price);
+				badge.title = 'Click to remove this filter';
 				
 				const [min, max] = currentFilters.price.split('-').map(Number);
 				const currencySymbol = '<?= $settings['currency'] ?? 'USD' ?>';
 				
 				badge.innerHTML = `
 					<span>Price: ${currencySymbol}${min} - ${currencySymbol}${max}</span>
-					<span class="font-bold text-lg leading-none hover:text-gray-300">&times;</span>
+					<span class="font-bold text-lg leading-none hover:text-gray-300 transition-colors">&times;</span>
 				`;
 				badgesContainer.appendChild(badge);
 			}
@@ -680,6 +684,27 @@
 		width: 16px;
 		height: 16px;
 		accent-color: #667eea;
+	}
+
+	/* Pill Badge Hover Effects */
+	.category-pill-badge {
+		transition: all 0.3s ease;
+		cursor: default;
+	}
+
+	.category-pill-badge:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+	}
+
+	.pill-close-btn {
+		transition: all 0.3s ease;
+	}
+
+	.pill-close-btn:hover {
+		transform: scale(1.1) rotate(90deg);
+		box-shadow: 0 6px 20px rgba(255, 87, 34, 0.4);
+		background: linear-gradient(135deg, #E64A19, #D84315);
 	}
 	</style>
 
