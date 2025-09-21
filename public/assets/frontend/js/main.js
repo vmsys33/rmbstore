@@ -4,6 +4,26 @@ $(function() {
     // preloader
     $(".preloader").fadeOut();
 
+    // Mobile Menu Toggle
+    $('#mobileMenuToggle').on('click', function() {
+        $('.nav-list').toggleClass('active');
+        $(this).toggleClass('active');
+    });
+
+    // Close mobile menu when clicking outside
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('.nav-menu').length) {
+            $('.nav-list').removeClass('active');
+            $('#mobileMenuToggle').removeClass('active');
+        }
+    });
+
+    // Close mobile menu when clicking on a link
+    $('.nav-link').on('click', function() {
+        $('.nav-list').removeClass('active');
+        $('#mobileMenuToggle').removeClass('active');
+    });
+
     // sidebar
     $('.sidebar').sideNav({
         edge: 'left'
@@ -370,16 +390,12 @@ $(function() {
         
         // Generate product suggestions with relevance indicators
         html += products.map((product, index) => {
-            // Get product image (use image_icon or featured_image or fallback to default)
+            // Get product image (use image_post or fallback to default)
             let imageUrl = '';
-            if (product.image_icon) {
-                imageUrl = product.image_icon.startsWith('uploads/') ? 
-                    '/' + product.image_icon : 
-                    '/uploads/products/icons/' + product.image_icon;
-            } else if (product.featured_image) {
-                imageUrl = product.featured_image.startsWith('uploads/') ? 
-                    '/' + product.featured_image : 
-                    '/uploads/products/' + product.featured_image;
+            if (product.image_post) {
+                imageUrl = product.image_post.startsWith('uploads/') ? 
+                    '/' + product.image_post : 
+                    '/uploads/products/posts/' + product.image_post;
             } else {
                 imageUrl = '/assets/frontend/images/product1.jpg';
             }

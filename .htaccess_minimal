@@ -16,3 +16,9 @@ RewriteRule ^(.*)$ index.php/$1 [L]
 
 
 
+
+
+
+
+
+

@@ -289,19 +289,30 @@ class ChatbotWidget {
         
         products.forEach((product, index) => {
             console.log('📦 Rendering product:', product);
+            
+            // Use actual product image if available, otherwise use placeholder
+            const productImage = product.image_post ? 
+                `<img src="${product.image_post}" alt="${product.product_name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">` :
+                `<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; width: 100%; height: 100%; border-radius: 8px;">📱</div>`;
+            
+            // Format price properly
+            const productPrice = product.price && product.price > 0 ? 
+                `$${parseFloat(product.price).toFixed(2)}` : 
+                'Price not available';
+            
             html += `
                 <div class="product-card-clean">
-                    <div class="product-image-container">
-                        <div class="product-image-clean" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px;">
-                            📱
+                    <div class="product-image-container" style="position: relative; width: 100%; padding-top: 75%; overflow: hidden; border-radius: 8px;">
+                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                            ${productImage}
                         </div>
                     </div>
-                    <div class="product-name-container">
-                        <a href="/product/${product.id}" class="product-name-link" target="_blank">
-                            🔗 ${product.product_name}
+                    <div class="product-name-container" style="padding: 12px;">
+                        <a href="/product/${product.id}" class="product-name-link" target="_blank" style="color: #2c3e50; text-decoration: none; font-weight: 600; font-size: 1rem; line-height: 1.4;">
+                            ${product.product_name}
                         </a>
-                        <div style="color: #667eea; font-weight: 600; margin-top: 4px;">$${product.price}</div>
-                        <div style="color: #666; font-size: 12px; margin-top: 2px;">Click to view details</div>
+                        <div style="color: #2c3e50; font-weight: 700; margin-top: 8px; font-size: 1.1rem;">${productPrice}</div>
+                        <div style="color: #7f8c8d; font-size: 12px; margin-top: 4px;">Click to view details</div>
                     </div>
                 </div>
             `;

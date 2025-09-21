@@ -55,6 +55,12 @@ class SlidersController extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
+
+         // Debug: see what the model returns
+    var_dump("hello");
+    die(); // Stop execution here
+
+
         // Handle image upload
         $image = $this->request->getFile('image');
         $imagePath = '';

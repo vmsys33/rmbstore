@@ -25,6 +25,16 @@ class Toolbar extends BaseConfig
 {
     /**
      * --------------------------------------------------------------------------
+     * Toolbar Enabled
+     * --------------------------------------------------------------------------
+     *
+     * Whether the toolbar is enabled or not.
+     * Set to false to disable the toolbar completely.
+     */
+    public bool $enabled = true;
+
+    /**
+     * --------------------------------------------------------------------------
      * Toolbar Collectors
      * --------------------------------------------------------------------------
      *
@@ -53,6 +63,7 @@ class Toolbar extends BaseConfig
      * avoid high memory usage when there are lots of data passed to the view.
      */
     public bool $collectVarData = true;
+    
 
     /**
      * --------------------------------------------------------------------------

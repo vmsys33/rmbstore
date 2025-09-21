@@ -204,6 +204,35 @@ class ProductModel extends Model
                     ->findAll();
     }
 
+    public function getAllProductsPaginated($limit, $offset)
+    {
+        return $this->where('status', 'active')
+                    ->orderBy('created_at', 'DESC')
+                    ->limit($limit, $offset)
+                    ->findAll();
+    }
+
+    public function getAllProductsCount()
+    {
+        return $this->where('status', 'active')->countAllResults();
+    }
+
+    public function getProductsByCategoryPaginated($categoryId, $limit, $offset)
+    {
+        return $this->where('status', 'active')
+                    ->where('product_category', $categoryId)
+                    ->orderBy('created_at', 'DESC')
+                    ->limit($limit, $offset)
+                    ->findAll();
+    }
+
+    public function getProductsByCategoryCount($categoryId)
+    {
+        return $this->where('status', 'active')
+                    ->where('product_category', $categoryId)
+                    ->countAllResults();
+    }
+
     public function getLatestProducts($limit = 8)
     {
         return $this->where('status', 'active')

@@ -31,7 +31,7 @@ class ChatbotController extends BaseController
         try {
             $db = \Config\Database::connect();
             $query = $db->table('products')
-                       ->select('id, product_name, description, price')
+                       ->select('id, product_name, description, price, image_post, image_icon, product_category')
                        ->orderBy('product_name', 'ASC')
                        ->get();
             
@@ -74,7 +74,7 @@ class ChatbotController extends BaseController
             $builder = $db->table('products');
             
             // Enhanced search with multiple strategies
-            $builder->select('id, product_name, description, price');
+            $builder->select('id, product_name, description, price, image_post, image_icon, product_category');
             
             // Build search query with improved matching
             $this->buildProductSearchQuery($builder, $query, $category, $minPrice, $maxPrice);
@@ -267,11 +267,13 @@ class ChatbotController extends BaseController
                 'product_name' => $product['product_name'], // Keep original property name for frontend compatibility
                 'name' => $product['product_name'], // Also add 'name' for flexibility
                 'description' => $this->truncateDescription($product['description'], 150),
-                'price' => number_format($product['price'], 2),
-                'image' => 'default-product.jpg', // No image column exists
+                'price' => $product['price'], // Keep original price for proper formatting
+                'image_post' => $product['image_post'], // Include actual product image
+                'image_icon' => $product['image_icon'], // Include icon image
+                'product_category' => $product['product_category'], // Include category
                 'stock_status' => 'in_stock', // Assume all products are in stock
                 'relevance_score' => $item['score'],
-                'url' => base_url('products/view/' . $product['id'])
+                'url' => base_url('product/' . $product['id']) // Fix URL format
             ];
         }
         
@@ -1144,7 +1146,7 @@ class ChatbotController extends BaseController
             }
             
             $builder = $db->table('products');
-            $builder->select('id, product_name, description, price');
+            $builder->select('id, product_name, description, price, image_post, image_icon, product_category');
             
             // First, try exact matches in product names (highest priority)
             $exactMatches = $builder->like('product_name', '%' . implode('%', $keywords) . '%')->get()->getResultArray();
@@ -1155,7 +1157,7 @@ class ChatbotController extends BaseController
             
             // If no exact matches, try individual keyword matches in product names
             $builder->resetQuery();
-            $builder->select('id, product_name, description, price');
+            $builder->select('id, product_name, description, price, image_post, image_icon, product_category');
             $builder->groupStart();
             foreach ($keywords as $keyword) {
                 $builder->orLike('product_name', '%' . $keyword . '%');

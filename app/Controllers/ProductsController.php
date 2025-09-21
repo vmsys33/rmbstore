@@ -11,6 +11,7 @@ class ProductsController extends BaseController
 {
     protected $productModel;
     protected $categoryModel;
+    protected $productGalleryModel;
 
     public function __construct()
     {
@@ -42,37 +43,51 @@ class ProductsController extends BaseController
         return view('products/create', $data);
     }
 
-    public function store()
+        public function store()
     {
-        // Validate required fields for step 1
-        $validation = \Config\Services::validation();
-        $validation->setRules([
+        $rules = [
             'product_name' => 'required|min_length[3]|max_length[255]',
             'product_category' => 'required|numeric',
-            'price' => 'permit_empty|numeric|greater_than[0]',
-            'image_icon' => 'required',
-            'short_description' => 'permit_empty|min_length[10]|max_length[500]',
-        ]);
+            'price' => 'permit_empty',
+        ];
 
-        if (!$validation->withRequest($this->request)->run()) {
-            return redirect()->back()->withInput()->with('errors', $validation->getErrors());
+        if (!$this->validate($rules)) {
+            $errors = $this->validator->getErrors();
+            return redirect()->back()->withInput()->with('validation_errors', $errors);
+        }
+
+        // Check for image_post file manually (more flexible than validation rule)
+        $postFile = $this->request->getFile('image_post');
+        if (!$postFile || !$postFile->isValid()) {
+            return redirect()->back()->withInput()->with('error', 'Please upload a valid frontend product image.');
         }
 
         // Handle image uploads
         $imageIcon = null;
 
-        // Upload icon image
+        // Upload icon image (optional)
         $iconFile = $this->request->getFile('image_icon');
-        if ($iconFile && $iconFile->isValid()) {
-            $uploadResult = ImageUploadHelper::uploadProductImage($iconFile, 'icon');
-            if ($uploadResult['success']) {
-                $imageIcon = $uploadResult['path'];
-            } else {
-                return redirect()->back()->withInput()->with('error', 'Icon image: ' . $uploadResult['message']);
+        if ($iconFile && $iconFile->isValid() && !$iconFile->hasMoved()) {
+            try {
+                $newName = $iconFile->getRandomName();
+                $iconFile->move(ROOTPATH . 'public/uploads/products/icons', $newName);
+                $imageIcon = 'uploads/products/icons/' . $newName;
+            } catch (\Exception $e) {
+                log_message('error', 'Icon image upload failed: ' . $e->getMessage());
+                // Continue without icon - it's optional
             }
         }
 
-        // Post image not used in new form structure
+        // Handle post image upload (required) - we already validated it exists above
+        $imagePost = '';
+        try {
+            $newName = $postFile->getRandomName();
+            $postFile->move(ROOTPATH . 'public/uploads/products/posts', $newName);
+            $imagePost = 'uploads/products/posts/' . $newName;
+        } catch (\Exception $e) {
+            log_message('error', 'Post image upload failed: ' . $e->getMessage());
+            return redirect()->back()->withInput()->with('error', 'Post image upload failed: ' . $e->getMessage());
+        }
 
         // Auto-generate SKU if not provided
         $sku = $this->request->getPost('sku');
@@ -96,13 +111,18 @@ class ProductsController extends BaseController
             'status' => $this->request->getPost('status') ?: 'active',
             'featured' => $this->request->getPost('featured') ? 1 : 0,
             'image_icon' => $imageIcon,
-            'image_post' => null, // Not used in new form
+            'image_post' => $imagePost,
         ];
 
+
         // Insert product
-        $productId = $this->productModel->insert($data);
-        if (!$productId) {
-            return redirect()->back()->withInput()->with('error', 'Failed to create product');
+        try {
+            $productId = $this->productModel->insert($data);
+            if (!$productId) {
+                return redirect()->back()->withInput()->with('error', 'Failed to create product: Database insert returned false. Check server logs for details.');
+            }
+        } catch (\Exception $e) {
+            return redirect()->back()->withInput()->with('error', 'Failed to create product: ' . $e->getMessage());
         }
 
         // Handle gallery images
@@ -197,52 +217,57 @@ class ProductsController extends BaseController
             return redirect()->to('/admin/products')->with('error', 'Product not found');
         }
 
-        // Validate input
-        $validation = \Config\Services::validation();
-        $validation->setRules([
+        // Use same validation approach as create method
+        $rules = [
             'product_name' => 'required|min_length[3]|max_length[255]',
-            'sku' => 'required|min_length[3]|max_length[50]|is_unique[products.sku,id,' . $id . ']',
             'product_category' => 'required|numeric',
-            'price' => 'permit_empty|numeric|greater_than[0]',
-            'stock_quantity' => 'required|numeric|greater_than_equal_to[0]',
-            'status' => 'required|in_list[active,inactive,draft]',
-        ]);
+            'price' => 'permit_empty',
+        ];
 
-        if (!$validation->withRequest($this->request)->run()) {
-            return redirect()->back()->withInput()->with('errors', $validation->getErrors());
+        if (!$this->validate($rules)) {
+            $errors = $this->validator->getErrors();
+            return redirect()->back()->withInput()->with('validation_errors', $errors);
         }
 
-        // Handle image uploads
-        $imageIcon = $currentProduct['image_icon']; // Keep existing image by default
-        $imagePost = $currentProduct['image_post']; // Keep existing image by default
+        // Handle image uploads - keep existing images by default
+        $imageIcon = $currentProduct['image_icon'];
+        $imagePost = $currentProduct['image_post'];
 
-        // Upload icon image if provided
+        // Upload icon image (optional) - same approach as create method
         $iconFile = $this->request->getFile('image_icon');
-        if ($iconFile && $iconFile->isValid()) {
-            $uploadResult = ImageUploadHelper::uploadProductImage($iconFile, 'icon');
-            if ($uploadResult['success']) {
+        if ($iconFile && $iconFile->isValid() && !$iconFile->hasMoved()) {
+            try {
+                $newName = $iconFile->getRandomName();
+                $iconFile->move(ROOTPATH . 'public/uploads/products/icons', $newName);
+                
                 // Delete old icon image if exists
-                if ($currentProduct['image_icon'] && file_exists(FCPATH . $currentProduct['image_icon'])) {
-                    unlink(FCPATH . $currentProduct['image_icon']);
+                if ($currentProduct['image_icon'] && file_exists(ROOTPATH . 'public/' . $currentProduct['image_icon'])) {
+                    unlink(ROOTPATH . 'public/' . $currentProduct['image_icon']);
                 }
-                $imageIcon = $uploadResult['path'];
-            } else {
-                return redirect()->back()->withInput()->with('error', 'Icon image: ' . $uploadResult['message']);
+                
+                $imageIcon = 'uploads/products/icons/' . $newName;
+            } catch (\Exception $e) {
+                log_message('error', 'Icon image upload failed: ' . $e->getMessage());
+                // Continue without updating icon - it's optional
             }
         }
 
-        // Upload post image if provided
+        // Upload post image (optional for updates) - same approach as create method
         $postFile = $this->request->getFile('image_post');
-        if ($postFile && $postFile->isValid()) {
-            $uploadResult = ImageUploadHelper::uploadProductImage($postFile, 'post');
-            if ($uploadResult['success']) {
+        if ($postFile && $postFile->isValid() && !$postFile->hasMoved()) {
+            try {
+                $newName = $postFile->getRandomName();
+                $postFile->move(ROOTPATH . 'public/uploads/products/posts', $newName);
+                
                 // Delete old post image if exists
-                if ($currentProduct['image_post'] && file_exists(FCPATH . $currentProduct['image_post'])) {
-                    unlink(FCPATH . $currentProduct['image_post']);
+                if ($currentProduct['image_post'] && file_exists(ROOTPATH . 'public/' . $currentProduct['image_post'])) {
+                    unlink(ROOTPATH . 'public/' . $currentProduct['image_post']);
                 }
-                $imagePost = $uploadResult['path'];
-            } else {
-                return redirect()->back()->withInput()->with('error', 'Post image: ' . $uploadResult['message']);
+                
+                $imagePost = 'uploads/products/posts/' . $newName;
+            } catch (\Exception $e) {
+                log_message('error', 'Post image upload failed: ' . $e->getMessage());
+                return redirect()->back()->withInput()->with('error', 'Post image upload failed: ' . $e->getMessage());
             }
         }
 
@@ -252,46 +277,48 @@ class ProductsController extends BaseController
             'product_category' => $this->request->getPost('product_category'),
             'price' => $this->request->getPost('price') ?: null,
             'sale_price' => $this->request->getPost('sale_price') ?: null,
-            'stock_quantity' => $this->request->getPost('stock_quantity'),
+            'stock_quantity' => $this->request->getPost('stock_quantity') ?: 0,
             'weight' => $this->request->getPost('weight') ?: null,
             'dimensions' => $this->request->getPost('dimensions') ?: null,
             'short_description' => $this->request->getPost('short_description') ?: null,
             'description' => $this->request->getPost('description') ?: null,
-            'status' => $this->request->getPost('status'),
+            'status' => $this->request->getPost('status') ?: 'active',
             'featured' => $this->request->getPost('featured') ? 1 : 0,
             'image_icon' => $imageIcon,
             'image_post' => $imagePost,
         ];
 
-        // Update product
-        $updateResult = $this->productModel->update($id, $data);
-        if ($updateResult) {
-            // Handle gallery images if provided
-            $galleryFiles = $this->request->getFileMultiple('gallery_images');
-            if ($galleryFiles) {
-                foreach ($galleryFiles as $file) {
-                    if ($file && $file->isValid()) {
-                        $uploadResult = ImageUploadHelper::uploadProductImage($file, 'gallery', $id);
-                        if ($uploadResult['success']) {
-                            $galleryData = [
-                                'product_id' => $id,
-                                'image_path' => $uploadResult['path'],
-                                'image_name' => $file->getClientName(),
-                                'alt_text' => $file->getClientName(),
-                                'sort_order' => 0,
-                                'status' => 'active'
-                            ];
-                            $this->productGalleryModel->insert($galleryData);
-                        }
+        // Update product - same approach as create method
+        try {
+            $updateResult = $this->productModel->update($id, $data);
+            if (!$updateResult) {
+                return redirect()->back()->withInput()->with('error', 'Failed to update product: Database update returned false. Check server logs for details.');
+            }
+        } catch (\Exception $e) {
+            return redirect()->back()->withInput()->with('error', 'Failed to update product: ' . $e->getMessage());
+        }
+
+        // Handle gallery images - same approach as create method
+        $galleryFiles = $this->request->getFileMultiple('gallery_images');
+        if ($galleryFiles) {
+            foreach ($galleryFiles as $file) {
+                if ($file && $file->isValid()) {
+                    $uploadResult = ImageUploadHelper::uploadProductImage($file, 'gallery', $id);
+                    if ($uploadResult['success']) {
+                        $galleryData = [
+                            'product_id' => $id,
+                            'image_path' => $uploadResult['path'],
+                            'image_name' => $file->getClientName(),
+                            'alt_text' => $file->getClientName(),
+                            'sort_order' => 0,
+                            'status' => 'active'
+                        ];
+                        $this->productGalleryModel->insert($galleryData);
                     }
                 }
             }
-
-            return redirect()->to('/admin/products')->with('success', 'Product updated successfully');
         }
 
-        // Log the error for debugging
-        log_message('error', 'Failed to update product ID: ' . $id . ' with data: ' . json_encode($data));
-        return redirect()->to('/admin/products/edit/' . $id)->with('error', 'Failed to update product. Please check the form data and try again.');
+        return redirect()->to('/admin/products')->with('success', 'Product updated successfully');
     }
 }

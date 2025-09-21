@@ -64,22 +64,38 @@ class FrontendController extends BaseController
         // Get category filter from query parameter
         $categoryId = $this->request->getGet('category');
         
+        // Pagination settings
+        $perPage = 12; // Products per page
+        $page = $this->request->getGet('page') ?? 1;
+        $offset = ($page - 1) * $perPage;
+        
         $data = [
             'title' => 'All Products',
             'settings' => $this->settingsModel->getSettings(),
-            'categories' => $this->categoryModel->getActiveCategories()
+            'categories' => $this->categoryModel->getActiveCategories(),
+            'current_page' => $page,
+            'per_page' => $perPage
         ];
         
         if ($categoryId) {
-            // Filter products by category
-            $data['products'] = $this->productModel->getProductsByCategory($categoryId);
+            // Filter products by category with pagination
+            $data['products'] = $this->productModel->getProductsByCategoryPaginated($categoryId, $perPage, $offset);
+            $data['total_products'] = $this->productModel->getProductsByCategoryCount($categoryId);
             $data['selected_category'] = $this->categoryModel->find($categoryId);
             $data['title'] = 'Products - ' . ($data['selected_category']['name'] ?? 'Category');
         } else {
-            // Show all products
-            $data['products'] = $this->productModel->getAllProducts();
+            // Show all products with pagination
+            $data['products'] = $this->productModel->getAllProductsPaginated($perPage, $offset);
+            $data['total_products'] = $this->productModel->getAllProductsCount();
             $data['selected_category'] = null;
         }
+        
+        // Calculate pagination info
+        $data['total_pages'] = ceil($data['total_products'] / $perPage);
+        $data['has_previous'] = $page > 1;
+        $data['has_next'] = $page < $data['total_pages'];
+        $data['previous_page'] = $page - 1;
+        $data['next_page'] = $page + 1;
 
         return view('frontend/products', $data);
     }

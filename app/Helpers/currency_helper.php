@@ -51,8 +51,16 @@ if (!function_exists('format_currency')) {
     /**
      * Format amount with currency symbol
      */
-    function format_currency(float $amount, int $decimals = 2): string
+    function format_currency($amount, int $decimals = 2): string
     {
+        // Handle null or empty values
+        if ($amount === null || $amount === '') {
+            return '-';
+        }
+        
+        // Convert to float
+        $amount = (float) $amount;
+        
         try {
             return \App\Services\CurrencyService::getInstance()->format($amount, $decimals);
         } catch (Exception $e) {
@@ -65,8 +73,16 @@ if (!function_exists('format_amount')) {
     /**
      * Format amount without currency symbol
      */
-    function format_amount(float $amount, int $decimals = 2): string
+    function format_amount($amount, int $decimals = 2): string
     {
+        // Handle null or empty values
+        if ($amount === null || $amount === '') {
+            return '-';
+        }
+        
+        // Convert to float
+        $amount = (float) $amount;
+        
         try {
             return \App\Services\CurrencyService::getInstance()->formatAmount($amount, $decimals);
         } catch (Exception $e) {
@@ -107,8 +123,16 @@ if (!function_exists('calculate_tax')) {
     /**
      * Calculate tax amount
      */
-    function calculate_tax(float $amount): float
+    function calculate_tax($amount): float
     {
+        // Handle null or empty values
+        if ($amount === null || $amount === '') {
+            return 0.00;
+        }
+        
+        // Convert to float
+        $amount = (float) $amount;
+        
         try {
             return \App\Services\CurrencyService::getInstance()->calculateTax($amount);
         } catch (Exception $e) {
@@ -121,8 +145,16 @@ if (!function_exists('calculate_total_with_tax')) {
     /**
      * Calculate total with tax
      */
-    function calculate_total_with_tax(float $amount): float
+    function calculate_total_with_tax($amount): float
     {
+        // Handle null or empty values
+        if ($amount === null || $amount === '') {
+            return 0.00;
+        }
+        
+        // Convert to float
+        $amount = (float) $amount;
+        
         try {
             return \App\Services\CurrencyService::getInstance()->calculateTotalWithTax($amount);
         } catch (Exception $e) {
@@ -135,8 +167,16 @@ if (!function_exists('calculate_total_with_tax_and_shipping')) {
     /**
      * Calculate total with tax and shipping
      */
-    function calculate_total_with_tax_and_shipping(float $amount): float
+    function calculate_total_with_tax_and_shipping($amount): float
     {
+        // Handle null or empty values
+        if ($amount === null || $amount === '') {
+            return 0.00;
+        }
+        
+        // Convert to float
+        $amount = (float) $amount;
+        
         try {
             return \App\Services\CurrencyService::getInstance()->calculateTotalWithTaxAndShipping($amount);
         } catch (Exception $e) {

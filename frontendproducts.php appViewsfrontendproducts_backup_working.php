@@ -1,0 +1,6 @@
+[33m6fa7bea[m Separate product count from category pill badge for better clarity
+[33md6f8341[m Transform category banner to pill-shaped badge with interactive close button
+[33m549278f[m Implement category redirection: categories now redirect to products page with active filtering
+[33mdd1c31c[m Update frontend UI: remove comment section, add to cart buttons, share features, and add store icon to navbar
+[33m5bed624[m AUGUST25
+[33m9be5ac5[m[33m ([m[1;32mrmbstore_updated082425[m[33m)[m Initial commit: RMB Store with enhanced chatbot and POS system

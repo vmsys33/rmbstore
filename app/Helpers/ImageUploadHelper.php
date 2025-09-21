@@ -274,7 +274,7 @@ class ImageUploadHelper
             case 'icon':
                 return ['width' => 54, 'height' => 54];
             case 'post':
-                return ['width' => 431, 'height' => 467];
+                return ['width' => 800, 'height' => 600]; // 4:3 ratio for frontend
             case 'gallery':
                 return ['width' => 1200, 'height' => 800];
             case 'logo':

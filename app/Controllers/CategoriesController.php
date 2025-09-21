@@ -37,29 +37,40 @@ class CategoriesController extends BaseController
     public function store()
     {
         // Validate input
-        $validation = \Config\Services::validation();
-        $validation->setRules([
+        $rules = [
             'name' => 'required|min_length[3]|max_length[255]|is_unique[categories.name]',
             'description' => 'permit_empty|max_length[500]',
             'status' => 'required|in_list[active,inactive]'
-        ]);
+        ];
 
-        if (!$validation->withRequest($this->request)->run()) {
-            return redirect()->back()->withInput()->with('errors', $validation->getErrors());
+        if (!$this->validate($rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
         // Prepare data
         $data = [
             'name' => $this->request->getPost('name'),
             'description' => $this->request->getPost('description') ?: null,
-            'status' => $this->request->getPost('status')
+            'category_icon' => $this->request->getPost('category_icon') ?: null,
+            'status' => $this->request->getPost('status'),
+            'slug' => url_title($this->request->getPost('name'), '-', true) // Generate slug from name
         ];
 
         // Insert category
-        $categoryId = $this->categoryModel->insert($data);
-        
-        if (!$categoryId) {
-            return redirect()->back()->withInput()->with('error', 'Failed to create category');
+        try {
+            // Log the data being inserted for debugging
+            log_message('info', 'Attempting to insert category with data: ' . json_encode($data));
+            
+            $categoryId = $this->categoryModel->insert($data);
+            if (!$categoryId) {
+                log_message('error', 'Category insert returned false. Data: ' . json_encode($data));
+                return redirect()->back()->withInput()->with('error', 'Failed to create category: Database insert returned false. Check server logs for details.');
+            }
+            
+            log_message('info', 'Category created successfully with ID: ' . $categoryId);
+        } catch (\Exception $e) {
+            log_message('error', 'Category creation failed: ' . $e->getMessage() . ' | Data: ' . json_encode($data));
+            return redirect()->back()->withInput()->with('error', 'Failed to create category: ' . $e->getMessage());
         }
 
         return redirect()->to('/categories')->with('success', 'Category created successfully');

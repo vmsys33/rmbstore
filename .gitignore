@@ -124,3 +124,17 @@ nb-configuration.xml
 
 /results/
 /phpunit*.xml
+
+# User-uploaded content
+public/uploads/
+
+# Temporary and debug scripts
+notes.txt
+test_*.php
+debug_*.php
+simple_*.php
+temp_*.php
+quick_test.php
+check_session.php
+crop_js.html
+test_results.txt

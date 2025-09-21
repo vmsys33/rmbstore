@@ -396,18 +396,28 @@ class ChatbotWidget {
      * Render product cards for carousel
      */
     renderProductCards(products) {
-        return products.map(product => `
-            <div class="chatbot-product-card">
-                <div class="chatbot-product-image">
-                    <img src="${product.image_url || '/assets/images/product-placeholder.jpg'}" alt="${product.name}">
+        return products.map(product => {
+            // Use actual product image if available, otherwise use placeholder
+            const productImage = product.image_post || product.image_url || '/assets/images/product-placeholder.jpg';
+            
+            // Format price properly
+            const productPrice = product.price && product.price > 0 ? 
+                (product.price_formatted || `$${parseFloat(product.price).toFixed(2)}`) : 
+                'Price not available';
+            
+            return `
+                <div class="chatbot-product-card">
+                    <div class="chatbot-product-image">
+                        <img src="${productImage}" alt="${product.product_name || product.name}" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div class="chatbot-product-info">
+                        <h4>${product.product_name || product.name}</h4>
+                        <p class="chatbot-product-price">${productPrice}</p>
+                        <a href="/product/${product.id || product.slug}" class="chatbot-product-link" target="_blank">View Details</a>
+                    </div>
                 </div>
-                <div class="chatbot-product-info">
-                    <h4>${product.name}</h4>
-                    <p class="chatbot-product-price">${product.price_formatted || '$' + product.price}</p>
-                    <a href="/product/${product.id || product.slug}" class="chatbot-product-link" target="_blank">View Details</a>
-                </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
     /**

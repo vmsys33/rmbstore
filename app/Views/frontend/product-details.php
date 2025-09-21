@@ -36,7 +36,22 @@
                 </div>
 				<div class="col s6">
 					<div class="content-right">
-						<a href="#searchModal" class="modal-trigger search-icon-nav"><i class="fa fa-search"></i></a>
+						<!-- Navigation Menu -->
+						<nav class="nav-menu">
+							<ul class="nav-list">
+								<li><a href="<?= base_url() ?>" class="nav-link">Home</a></li>
+								<li><a href="<?= base_url('products') ?>" class="nav-link">Products</a></li>
+								<li><a href="#" class="nav-link">About Us</a></li>
+							</ul>
+							<!-- Mobile Menu Toggle -->
+							<button class="mobile-menu-toggle" id="mobileMenuToggle">
+								<span></span>
+								<span></span>
+								<span></span>
+							</button>
+							<!-- Search Icon -->
+							<a href="#searchModal" class="modal-trigger search-icon-nav"><i class="fa fa-search"></i></a>
+						</nav>
 					</div>
 				</div>
 			</div>
@@ -195,36 +210,48 @@
 					<div class="product-d-slide owl-carousel owl-theme">
 						<?php if (!empty($product['image_post'])): ?>
 							<div class="content">
-								<img src="<?= base_url($product['image_post']) ?>" alt="<?= esc($product['product_name']) ?>">
+								<img src="<?= base_url($product['image_post']) ?>" alt="<?= esc($product['product_name']) ?>" 
+									 style="width: 100%; aspect-ratio: 1 / 1; object-fit: cover; object-position: center; border-radius: 10px;">
 							</div>
 						<?php endif; ?>
 						
 						<?php if (!empty($product['gallery_images'])): ?>
 							<?php foreach ($product['gallery_images'] as $galleryImage): ?>
 								<div class="content">
-									<img src="<?= base_url($galleryImage['image_path']) ?>" alt="<?= esc($product['product_name']) ?>">
+									<img src="<?= base_url($galleryImage['image_path']) ?>" alt="<?= esc($product['product_name']) ?>"
+										 style="width: 100%; aspect-ratio: 1 / 1; object-fit: cover; object-position: center; border-radius: 10px;">
 								</div>
 							<?php endforeach; ?>
 						<?php endif; ?>
 						
 						<?php if (empty($product['image_post']) && empty($product['gallery_images'])): ?>
 							<div class="content">
-								<img src="<?= base_url('assets/frontend/images/product-details1.jpg') ?>" alt="<?= esc($product['product_name']) ?>">
+								<img src="<?= base_url('assets/frontend/images/product-details1.jpg') ?>" alt="<?= esc($product['product_name']) ?>"
+									 style="width: 100%; aspect-ratio: 1 / 1; object-fit: cover; object-position: center; border-radius: 10px;">
 							</div>
 							<div class="content">
-								<img src="<?= base_url('assets/frontend/images/product-details2.jpg') ?>" alt="<?= esc($product['product_name']) ?>">
+								<img src="<?= base_url('assets/frontend/images/product-details2.jpg') ?>" alt="<?= esc($product['product_name']) ?>"
+									 style="width: 100%; aspect-ratio: 1 / 1; object-fit: cover; object-position: center; border-radius: 10px;">
 							</div>
 						<?php endif; ?>
 					</div>
 					<div class="desc-short">
 						<h4><?= esc($product['product_name'] ?? 'Product Name') ?></h4>
-						<h5>$<?= number_format($product['price'] ?? 0, 2) ?></h5>
+						<h5><?= $settings['currency'] ?? 'USD' ?><?= number_format($product['price'] ?? 0, 2) ?></h5>
 						<p><?= esc($product['short_description'] ?? 'Product description will be displayed here.') ?></p>
 					</div>
 
 					<div class="desc-long">
 						<h5>Description</h5>
 						<p><?= esc($product['description'] ?? 'Detailed product description will be displayed here.') ?></p>
+					</div>
+					
+					<!-- Back to Home Link -->
+					<div class="back-to-home" style="margin: 30px 0; text-align: center;">
+						<a href="<?= base_url() ?>" class="button" style="background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; transition: background-color 0.3s;">
+							<i class="fa fa-home" style="margin-right: 8px;"></i>
+							Back to Home
+						</a>
 					</div>
 				</div>
 				
@@ -235,7 +262,7 @@
 						<?php foreach ($related_products as $relatedProduct): ?>
 							<div class="content">
 								<a href="<?= base_url('product/' . $relatedProduct['id']) ?>">
-									<img src="<?= base_url($relatedProduct['image_icon'] ?? 'assets/frontend/images/style1.jpg') ?>" alt="<?= esc($relatedProduct['product_name']) ?>">
+									<img src="<?= base_url($relatedProduct['image_post'] ?? 'assets/frontend/images/style1.jpg') ?>" alt="<?= esc($relatedProduct['product_name']) ?>">
 								</a>
 							</div>
 						<?php endforeach; ?>
@@ -246,6 +273,19 @@
 		</div>
 	</div>
 	<!-- end product details -->
+
+	<!-- footer -->
+	<footer>
+		<div class="container">
+			<a href="<?= base_url() ?>"><h1><?= $settings['store_name'] ?? 'STORE' ?></h1></a>
+					<ul>
+			<li><a href="https://www.facebook.com/profile.php?id=100085169617947" target="_blank" style="color: white; font-weight: bold;"><i class="fa fa-facebook"></i> Rai Mini Boutique Facebook Page</a></li>
+		</ul>
+			<p>Copyright © <?= date('Y') ?> <?= $settings['store_name'] ?? 'Our Store' ?>. All Rights Reserved</p>
+			<p><a href="<?= base_url('admin/') ?>" style="color: #fff; text-decoration: none; font-size: 12px;">Admin Panel</a></p>
+		</div>
+	</footer>
+	<!-- end footer -->
 
 	<script src="<?= base_url('assets/frontend/js/jquery.min.js') ?>?v=1.0"></script>
 	<script src="<?= base_url('assets/frontend/js/materialize.js') ?>?v=1.0"></script>
@@ -347,6 +387,124 @@
     </div>
 
 	<script src="<?= base_url('assets/frontend/js/chatbot.js') ?>"></script>
+
+	<!-- Navigation Menu Styles -->
+	<style>
+		/* Navigation Menu Styles */
+		.nav-menu {
+			display: flex;
+			align-items: center;
+			margin-right: 15px;
+		}
+
+		.nav-list {
+			display: flex;
+			list-style: none;
+			margin: 0;
+			padding: 0;
+			gap: 20px;
+		}
+
+		.nav-link {
+			color: #333;
+			text-decoration: none;
+			font-weight: 500;
+			font-size: 14px;
+			transition: color 0.3s ease;
+			padding: 8px 0;
+		}
+
+		.nav-link:hover {
+			color: #2196F3;
+		}
+
+		.mobile-menu-toggle {
+			display: none;
+			flex-direction: column;
+			background: none;
+			border: none;
+			cursor: pointer;
+			padding: 5px;
+			margin-right: 10px;
+		}
+
+		.mobile-menu-toggle span {
+			width: 25px;
+			height: 3px;
+			background-color: #333;
+			margin: 3px 0;
+			transition: 0.3s;
+			border-radius: 2px;
+		}
+
+		/* Mobile Responsive */
+		@media (max-width: 768px) {
+			.nav-list {
+				display: none;
+				position: absolute;
+				top: 100%;
+				right: 0;
+				background: white;
+				box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+				border-radius: 8px;
+				padding: 20px;
+				min-width: 200px;
+				z-index: 1000;
+				flex-direction: column;
+				gap: 15px;
+			}
+
+			.nav-list.active {
+				display: flex;
+			}
+
+			.mobile-menu-toggle {
+				display: flex;
+			}
+
+			.nav-link {
+				font-size: 16px;
+				padding: 10px 0;
+				border-bottom: 1px solid #eee;
+			}
+
+			.nav-link:last-child {
+				border-bottom: none;
+			}
+
+			.content-right {
+				position: relative;
+			}
+		}
+
+		@media (max-width: 480px) {
+			.nav-list {
+				right: -10px;
+				min-width: 180px;
+			}
+		}
+	</style>
+
+	<!-- Navigation Menu JavaScript -->
+	<script>
+		document.addEventListener('DOMContentLoaded', function() {
+			const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+			const navList = document.querySelector('.nav-list');
+			
+			if (mobileMenuToggle && navList) {
+				mobileMenuToggle.addEventListener('click', function() {
+					navList.classList.toggle('active');
+				});
+				
+				// Close menu when clicking outside
+				document.addEventListener('click', function(event) {
+					if (!event.target.closest('.nav-menu')) {
+						navList.classList.remove('active');
+					}
+				});
+			}
+		});
+	</script>
 
 </body>
 </html>

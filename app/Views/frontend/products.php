@@ -36,7 +36,22 @@
                 </div>
 				<div class="col s6">
 					<div class="content-right">
-						<a href="#searchModal" class="modal-trigger search-icon-nav"><i class="fa fa-search"></i></a>
+						<!-- Navigation Menu -->
+						<nav class="nav-menu">
+							<ul class="nav-list">
+								<li><a href="<?= base_url() ?>" class="nav-link">Home</a></li>
+								<li><a href="<?= base_url('products') ?>" class="nav-link">Products</a></li>
+								<li><a href="#" class="nav-link">About Us</a></li>
+							</ul>
+							<!-- Mobile Menu Toggle -->
+							<button class="mobile-menu-toggle" id="mobileMenuToggle">
+								<span></span>
+								<span></span>
+								<span></span>
+							</button>
+							<!-- Search Icon -->
+							<a href="#searchModal" class="modal-trigger search-icon-nav"><i class="fa fa-search"></i></a>
+						</nav>
 					</div>
 				</div>
 			</div>
@@ -228,8 +243,8 @@
 							<h6><i class="fa fa-dollar-sign"></i> Price Range</h6>
 							<div class="price-filter-container">
 								<div class="price-range-display">
-									<span class="price-label">Min: <span id="minPriceDisplay">$0</span></span>
-									<span class="price-label">Max: <span id="maxPriceDisplay">$1000</span></span>
+														<span class="price-label">Min: <span id="minPriceDisplay"><?= $settings['currency'] ?? 'USD' ?>0</span></span>
+					<span class="price-label">Max: <span id="maxPriceDisplay"><?= $settings['currency'] ?? 'USD' ?>1000</span></span>
 								</div>
 								<div class="price-slider-container">
 									<div class="price-slider-track">
@@ -253,7 +268,7 @@
 					<?php foreach ($products as $product): ?>
 						<div class="product-card" data-category="<?= esc($product['product_category'] ?? '') ?>" data-price="<?= $product['price'] ?>">
 							<div class="product-image-container">
-								<img src="<?= base_url($product['featured_image'] ?? $product['image_icon'] ?? 'assets/frontend/images/product1.jpg') ?>" 
+								<img src="<?= base_url($product['image_post'] ?? 'assets/frontend/images/product1.jpg') ?>" 
 									 alt="<?= esc($product['product_name']) ?>"
 									 class="product-image">
 								<div class="product-overlay">
@@ -261,14 +276,33 @@
 										<i class="fa fa-eye"></i> View Details
 									</a>
 								</div>
+								<?php if (!empty($product['sale_price']) && $product['sale_price'] < $product['price']): ?>
+									<div class="product-badge sale">Sale</div>
+								<?php elseif (!empty($product['featured']) && $product['featured'] == 1): ?>
+									<div class="product-badge featured">Featured</div>
+								<?php endif; ?>
 							</div>
 							<div class="product-info">
 								<h5 class="product-name">
 									<a href="<?= base_url('product/' . $product['id']) ?>"><?= esc($product['product_name']) ?></a>
 								</h5>
 								<div class="product-price">
+									<?php if (!empty($product['price']) && $product['price'] > 0): ?>
+										<?php if (!empty($product['sale_price']) && $product['sale_price'] < $product['price']): ?>
+											<!-- Sale Price Display -->
+											<span class="currency-symbol"><?= $settings['currency'] ?? 'USD' ?></span>
+											<span class="price-value" style="color: #e74c3c; font-weight: 700;"><?= number_format($product['sale_price'], 2) ?></span>
+											<span class="original-price" style="color: #7f8c8d; text-decoration: line-through; font-size: 0.9em; margin-left: 8px;">
+												<?= $settings['currency'] ?? 'USD' ?><?= number_format($product['price'], 2) ?>
+											</span>
+										<?php else: ?>
+											<!-- Regular Price Display -->
 									<span class="currency-symbol"><?= $settings['currency'] ?? 'USD' ?></span>
 									<span class="price-value"><?= number_format($product['price'], 2) ?></span>
+										<?php endif; ?>
+									<?php else: ?>
+										<span class="price-value" style="color: #999;">Price not available</span>
+									<?php endif; ?>
 								</div>
 								<div class="product-category">
 									<?php 
@@ -300,6 +334,70 @@
 			<div class="results-info">
 				<span id="resultsCount"></span>
 			</div>
+			
+			<!-- Pagination -->
+			<?php if (isset($total_pages) && $total_pages > 1): ?>
+			<div class="pagination-container">
+				<div class="pagination-info">
+					Showing <?= (($current_page - 1) * $per_page) + 1 ?> to <?= min($current_page * $per_page, $total_products) ?> of <?= $total_products ?> products
+				</div>
+				<nav class="pagination-nav">
+					<ul class="pagination">
+						<?php if ($has_previous): ?>
+							<li class="page-item">
+								<a class="page-link" href="<?= base_url('products' . ($selected_category ? '?category=' . $selected_category['id'] : '')) . ($current_page > 2 ? '&page=' . $previous_page : '') ?>">
+									<i class="fa fa-chevron-left"></i> Previous
+								</a>
+							</li>
+						<?php endif; ?>
+						
+						<?php
+						// Calculate page range to show
+						$start_page = max(1, $current_page - 2);
+						$end_page = min($total_pages, $current_page + 2);
+						
+						// Show first page if not in range
+						if ($start_page > 1): ?>
+							<li class="page-item">
+								<a class="page-link" href="<?= base_url('products' . ($selected_category ? '?category=' . $selected_category['id'] : '')) ?>">1</a>
+							</li>
+							<?php if ($start_page > 2): ?>
+								<li class="page-item disabled"><span class="page-link">...</span></li>
+							<?php endif; ?>
+						<?php endif; ?>
+						
+						<?php for ($i = $start_page; $i <= $end_page; $i++): ?>
+							<li class="page-item <?= $i == $current_page ? 'active' : '' ?>" <?= ($i == $current_page || $i == 1 || $i == $total_pages) ? 'data-mobile-visible="true"' : '' ?>>
+								<?php if ($i == $current_page): ?>
+									<span class="page-link"><?= $i ?></span>
+								<?php else: ?>
+									<a class="page-link" href="<?= base_url('products' . ($selected_category ? '?category=' . $selected_category['id'] : '')) . ($i > 1 ? ($selected_category ? '&' : '?') . 'page=' . $i : '') ?>"><?= $i ?></a>
+								<?php endif; ?>
+							</li>
+						<?php endfor; ?>
+						
+						<?php
+						// Show last page if not in range
+						if ($end_page < $total_pages): ?>
+							<?php if ($end_page < $total_pages - 1): ?>
+								<li class="page-item disabled"><span class="page-link">...</span></li>
+							<?php endif; ?>
+							<li class="page-item">
+								<a class="page-link" href="<?= base_url('products' . ($selected_category ? '?category=' . $selected_category['id'] : '')) . '&page=' . $total_pages ?>"><?= $total_pages ?></a>
+							</li>
+						<?php endif; ?>
+						
+						<?php if ($has_next): ?>
+							<li class="page-item">
+								<a class="page-link" href="<?= base_url('products' . ($selected_category ? '?category=' . $selected_category['id'] : '')) . ($selected_category ? '&' : '?') . 'page=' . $next_page ?>">
+									Next <i class="fa fa-chevron-right"></i>
+								</a>
+							</li>
+						<?php endif; ?>
+					</ul>
+				</nav>
+			</div>
+			<?php endif; ?>
 		</div>
 	</div>
 	<!-- end product list -->
@@ -312,56 +410,44 @@
 
 	<!-- Load Products for Search -->
 	<script>
-		// Global products array for search functionality
-		let products = [];
-		let allProducts = [];
-		let currentFilters = {
-			category: 'all',
-			price: 'all'
-		};
-		
-		// DOM elements
-		const productsContainer = document.getElementById('productsGrid');
-		const badgesContainer = document.getElementById('badges-container');
-		const productCountElement = document.getElementById('product-count');
-		
-		// Global error handler
-		window.addEventListener('error', function(e) {
-			console.error('❌ JavaScript Error:', e.error);
-			
-		});
-		
-		// Load products when page loads
+		// Working version - both category and price filters
 		document.addEventListener('DOMContentLoaded', function() {
-			console.log('🚀 DOM Content Loaded');
-			
-			// Load products from the page data
-			<?php if (!empty($products)): ?>
-				allProducts = <?= json_encode($products) ?>;
-				products = [...allProducts];
-				console.log('📦 Loaded', products.length, 'products for search');
+			const allProducts = <?= json_encode($products) ?>;
+			let currentFilters = {
+				category: '<?= (!empty($selected_category) && is_array($selected_category)) ? $selected_category['id'] : 'all' ?>',
+				price: 'all'
+			};
+		
+			// Category filter
+			document.querySelector('.category-filters').addEventListener('change', function(e) {
+				if (e.target.classList.contains('category-radio')) {
+					const value = e.target.value;
+					if (value === 'all') {
+						window.location.href = '<?= base_url('products') ?>';
+					} else {
+						window.location.href = '<?= base_url('products') ?>?category=' + value;
+					}
+				}
+			});
 				
 				// Initialize price range
 				initializePriceRange();
-				// Initialize filters
-				initializeFilters();
-				// Initial render
-				renderProducts();
-				renderBadges();
-			<?php else: ?>
-				console.log('⚠️ No products loaded for search');
-			<?php endif; ?>
-		});
-		
-		// Initialize price range based on actual product prices
-		function initializePriceRange() {
-			if (allProducts.length === 0) return;
 			
-			const prices = allProducts.map(p => parseFloat(p.price));
+			// Price filter
+			document.getElementById('minPriceSlider').addEventListener('input', handlePriceFilter);
+			document.getElementById('maxPriceSlider').addEventListener('input', handlePriceFilter);
+			
+		function initializePriceRange() {
+			const prices = allProducts.map(p => parseFloat(p.price)).filter(p => !isNaN(p) && p > 0);
+			if (prices.length === 0) {
+				// No products with prices, disable price filter
+				document.getElementById('minPriceSlider').disabled = true;
+				document.getElementById('maxPriceSlider').disabled = true;
+				return;
+			}
+			
 			const minPrice = Math.floor(Math.min(...prices));
 			const maxPrice = Math.ceil(Math.max(...prices));
-			
-			console.log('💰 Price range:', minPrice, 'to', maxPrice);
 			
 			// Update slider ranges
 			document.getElementById('minPriceSlider').min = minPrice;
@@ -372,297 +458,155 @@
 			// Set initial values to full range
 			document.getElementById('minPriceSlider').value = minPrice;
 			document.getElementById('maxPriceSlider').value = maxPrice;
-			
-			// Update displays
-			updatePriceDisplays(minPrice, maxPrice);
-			updatePriceSliderFill(minPrice, maxPrice);
-			
-			// Update input fields to match initial values
 			document.getElementById('minPriceInput').value = minPrice;
 			document.getElementById('maxPriceInput').value = maxPrice;
+			document.getElementById('minPriceDisplay').textContent = '<?= $settings['currency'] ?? 'USD' ?>' + minPrice;
+			document.getElementById('maxPriceDisplay').textContent = '<?= $settings['currency'] ?? 'USD' ?>' + maxPrice;
 		}
 		
-		// Initialize filter event listeners
-		function initializeFilters() {
-			console.log('🔧 initializeFilters called');
+		function handlePriceFilter() {
+			const minSlider = document.getElementById('minPriceSlider');
+			const maxSlider = document.getElementById('maxPriceSlider');
+			const minValue = parseInt(minSlider.value);
+			const maxValue = parseInt(maxSlider.value);
 			
-			// Category radio buttons - use event delegation
-			document.querySelector('.category-filters').addEventListener('change', function(e) {
-				if (e.target.classList.contains('category-radio')) {
-					handleCategoryFilter(e);
+			// Update displays
+			document.getElementById('minPriceInput').value = minValue;
+			document.getElementById('maxPriceInput').value = maxValue;
+			document.getElementById('minPriceDisplay').textContent = '<?= $settings['currency'] ?? 'USD' ?>' + minValue;
+			document.getElementById('maxPriceDisplay').textContent = '<?= $settings['currency'] ?? 'USD' ?>' + maxValue;
+			
+			// Set price filter
+			const prices = allProducts.map(p => parseFloat(p.price)).filter(p => !isNaN(p) && p > 0);
+			if (prices.length === 0) {
+				// No products with prices, keep filter as 'all'
+				currentFilters.price = 'all';
+				renderProducts();
+				renderBadges();
+				return;
+			}
+			const fullMinPrice = Math.floor(Math.min(...prices));
+			const fullMaxPrice = Math.ceil(Math.max(...prices));
+			
+			if (minValue > fullMinPrice || maxValue < fullMaxPrice) {
+				currentFilters.price = `${minValue}-${maxValue}`;
+			} else {
+				currentFilters.price = 'all';
+			}
+			
+			renderProducts();
+			renderBadges();
+		}
+		
+		function renderProducts() {
+			const filteredProducts = allProducts.filter(product => {
+				// Category filter (handled by page redirect)
+				if (currentFilters.category !== 'all' && product.product_category != currentFilters.category) {
+					return false;
 				}
+				
+				// Price filter
+				if (currentFilters.price !== 'all') {
+					const [minPrice, maxPrice] = currentFilters.price.split('-').map(Number);
+					const productPrice = parseFloat(product.price) || 0;
+					if (productPrice < minPrice || productPrice > maxPrice) {
+						return false;
+					}
+				}
+				
+				return true;
 			});
 			
-			// Price sliders
-			document.getElementById('minPriceSlider').addEventListener('input', handlePriceFilter);
-			document.getElementById('maxPriceSlider').addEventListener('input', handlePriceFilter);
+			// Update display
+			const productsGrid = document.querySelector('.products-grid');
+			if (productsGrid) {
+				productsGrid.innerHTML = '';
+				filteredProducts.forEach(product => {
+					const productCard = createProductCard(product);
+					productsGrid.appendChild(productCard);
+				});
+			}
+		}
+		
+		function renderBadges() {
+			const badgesContainer = document.getElementById('badges-container');
+			if (!badgesContainer) return;
 			
-			// Price inputs
-			document.getElementById('minPriceInput').addEventListener('input', handlePriceInput);
-			document.getElementById('maxPriceInput').addEventListener('input', handlePriceInput);
+			badgesContainer.innerHTML = '';
 			
-			// Add event listener to the badges container for removing filters
-			badgesContainer.addEventListener('click', (e) => {
-				// Find the parent badge element
+			if (currentFilters.price !== 'all') {
+				const badge = document.createElement('span');
+				badge.className = 'badge';
+				badge.innerHTML = `Price: ${currentFilters.price} <i class="fa fa-times"></i>`;
+				badge.setAttribute('data-filter-key', 'price');
+				badge.setAttribute('data-filter-value', currentFilters.price);
+				badgesContainer.appendChild(badge);
+			}
+		}
+		
+			function createProductCard(product) {
+				const card = document.createElement('div');
+				card.className = 'product-card';
+				
+				const imageUrl = product.image_post ? 
+					'<?= base_url() ?>' + product.image_post : 
+					'<?= base_url('assets/frontend/images/no-image.png') ?>';
+				
+				const price = product.sale_price ? product.sale_price : product.price;
+				const originalPrice = product.sale_price ? product.price : null;
+				
+				card.innerHTML = `
+					<div class="product-image-container">
+						<img src="${imageUrl}" alt="${product.product_name}" class="product-image">
+						<div class="product-overlay">
+							<a href="<?= base_url('product/') ?>${product.slug}" class="view-details-btn">
+								<i class="fa fa-eye"></i> View Details
+							</a>
+						</div>
+						${product.sale_price ? '<div class="product-badge">Sale</div>' : ''}
+						${product.featured == '1' ? '<div class="product-badge featured">Featured</div>' : ''}
+					</div>
+					<div class="product-info">
+						<h5 class="product-name">
+							<a href="<?= base_url('product/') ?>${product.slug}">${product.product_name}</a>
+						</h5>
+						<div class="product-price">
+							${originalPrice ? `<span class="original-price">PHP ${originalPrice}</span>` : ''}
+							<span class="currency-symbol">PHP</span>
+							<span class="price-value">${price}</span>
+						</div>
+						<div class="product-category">
+							<span class="category-tag">${product.category_name || 'Uncategorized'}</span>
+						</div>
+					</div>
+				`;
+				
+				return card;
+			}
+			
+			// Badge click handler
+			document.getElementById('badges-container').addEventListener('click', function(e) {
 				const badge = e.target.closest('.badge');
 				if (badge) {
 					const key = badge.getAttribute('data-filter-key');
-					const value = badge.getAttribute('data-filter-value');
-					
-					// Reset the filter and corresponding radio button
-					currentFilters[key] = 'all';
-					
-					// Reset category radio button if it's a category filter
-					if (key === 'category') {
-						document.querySelector('.category-radio[value="all"]').checked = true;
-						// Redirect to products page without category filter
-						window.location.href = '<?= base_url('products') ?>';
-						return;
-					}
-					
-					// Reset price filter if it's a price filter
 					if (key === 'price') {
-						// Reset price sliders to full range
-						const minSlider = document.getElementById('minPriceSlider');
-						const maxSlider = document.getElementById('maxPriceSlider');
+						// Reset price sliders
 						const prices = allProducts.map(p => parseFloat(p.price));
 						const minPrice = Math.floor(Math.min(...prices));
 						const maxPrice = Math.ceil(Math.max(...prices));
 						
-						minSlider.value = minPrice;
-						maxSlider.value = maxPrice;
+						document.getElementById('minPriceSlider').value = minPrice;
+						document.getElementById('maxPriceSlider').value = maxPrice;
 						document.getElementById('minPriceInput').value = minPrice;
 						document.getElementById('maxPriceInput').value = maxPrice;
-						updatePriceDisplays(minPrice, maxPrice);
-					}
-
-					// Remove the badge from the DOM with a transition
-					badge.classList.add('opacity-0', 'scale-0');
-					setTimeout(() => {
-						badge.remove();
-						// Re-render the products after the badge is removed
+						
+						currentFilters.price = 'all';
 						renderProducts();
 						renderBadges();
-					}, 300);
+					}
 				}
 			});
-		}
-		
-		// Handle category filter changes
-		function handleCategoryFilter(e) {
-			console.log('🎯 Category filter changed:', e.target.value);
-			const value = e.target.value;
-			
-			// If "All Categories" is selected, redirect to products page without category
-			if (value === 'all') {
-				window.location.href = '<?= base_url('products') ?>';
-				return;
-			}
-			
-			// Redirect to products page with category parameter
-			window.location.href = '<?= base_url('products') ?>?category=' + value;
-		}
-		
-		// Handle price filter changes
-		function handlePriceFilter(e) {
-			const minSlider = document.getElementById('minPriceSlider');
-			const maxSlider = document.getElementById('maxPriceSlider');
-			
-			let minValue = parseInt(minSlider.value);
-			let maxValue = parseInt(maxSlider.value);
-			
-			// Ensure min doesn't exceed max
-			if (minValue > maxValue) {
-				if (e.target === minSlider) {
-					minValue = maxValue;
-					minSlider.value = minValue;
-				} else {
-					maxValue = minValue;
-					maxSlider.value = maxValue;
-				}
-			}
-			
-			updatePriceDisplays(minValue, maxValue);
-			updatePriceSliderFill(minValue, maxValue);
-			
-			// Update input fields
-			document.getElementById('minPriceInput').value = minValue;
-			document.getElementById('maxPriceInput').value = maxValue;
-			
-			// Check if price range is filtered (not at full range)
-			const prices = allProducts.map(p => parseFloat(p.price));
-			const fullMinPrice = Math.floor(Math.min(...prices));
-			const fullMaxPrice = Math.ceil(Math.max(...prices));
-			
-			if (minValue > fullMinPrice || maxValue < fullMaxPrice) {
-				currentFilters.price = `${minValue}-${maxValue}`;
-			} else {
-				currentFilters.price = 'all';
-			}
-			
-			renderBadges();
-			renderProducts();
-		}
-		
-		// Handle price input changes
-		function handlePriceInput(e) {
-			const minInput = document.getElementById('minPriceInput');
-			const maxInput = document.getElementById('maxPriceInput');
-			const minSlider = document.getElementById('minPriceSlider');
-			const maxSlider = document.getElementById('maxPriceSlider');
-			
-			let minValue = parseInt(minInput.value) || 0;
-			let maxValue = parseInt(maxInput.value) || 1000;
-			
-			// Ensure min doesn't exceed max
-			if (minValue > maxValue) {
-				if (e.target === minInput) {
-					minValue = maxValue;
-					minInput.value = minValue;
-				} else {
-					maxValue = minValue;
-					maxInput.value = maxValue;
-				}
-			}
-			
-			// Update sliders
-			minSlider.value = minValue;
-			maxSlider.value = maxValue;
-			
-			updatePriceDisplays(minValue, maxValue);
-			updatePriceSliderFill(minValue, maxValue);
-			
-			// Check if price range is filtered (not at full range)
-			const prices = allProducts.map(p => parseFloat(p.price));
-			const fullMinPrice = Math.floor(Math.min(...prices));
-			const fullMaxPrice = Math.ceil(Math.max(...prices));
-			
-			if (minValue > fullMinPrice || maxValue < fullMaxPrice) {
-				currentFilters.price = `${minValue}-${maxValue}`;
-			} else {
-				currentFilters.price = 'all';
-			}
-			
-			renderBadges();
-			renderProducts();
-		}
-		
-		// Update price displays
-		function updatePriceDisplays(minPrice, maxPrice) {
-			const currencySymbol = '<?= $settings['currency'] ?? 'USD' ?>';
-			document.getElementById('minPriceDisplay').textContent = currencySymbol + minPrice;
-			document.getElementById('maxPriceDisplay').textContent = currencySymbol + maxPrice;
-		}
-		
-		// Update price slider fill
-		function updatePriceSliderFill(minPrice, maxPrice) {
-			const minSlider = document.getElementById('minPriceSlider');
-			const maxSlider = document.getElementById('maxPriceSlider');
-			const fill = document.getElementById('priceSliderFill');
-			
-			const minPercent = ((minPrice - minSlider.min) / (minSlider.max - minSlider.min)) * 100;
-			const maxPercent = ((maxPrice - minSlider.min) / (minSlider.max - minSlider.min)) * 100;
-			
-			fill.style.left = minPercent + '%';
-			fill.style.width = (maxPercent - minPercent) + '%';
-		}
-		
-		// Function to filter and render products
-		function renderProducts() {
-			console.log('🔄 renderProducts called with filters:', currentFilters);
-			// Filter products based on active filters
-			const filteredProducts = allProducts.filter(product => {
-				// Check category filter
-				const categoryMatch = currentFilters.category === 'all' || product.product_category == currentFilters.category;
-
-				// Check price filter
-				const priceMatch = currentFilters.price === 'all' || (() => {
-					const [min, max] = currentFilters.price.split('-').map(Number);
-					return product.price >= min && product.price <= max;
-				})();
-
-				return categoryMatch && priceMatch;
-			});
-
-			// Update the product count
-			productCountElement.textContent = `(${filteredProducts.length} items)`;
-
-			// Update products array
-			products = filteredProducts;
-			
-			// Update display
-			updateProductsDisplay();
-		}
-		
-		// Function to render the filter badges
-		function renderBadges() {
-			console.log('🏷️ renderBadges called with filters:', currentFilters);
-			// Clear the badges container
-			badgesContainer.innerHTML = '';
-
-			// Render category badge if a filter is active
-			if (currentFilters.category !== 'all') {
-				const badge = document.createElement('div');
-				badge.className = 'badge bg-blue-500 text-white px-4 py-2 rounded-full cursor-pointer flex items-center gap-2 transform hover:scale-105 hover:bg-blue-600 transition-all duration-200';
-				badge.setAttribute('data-filter-key', 'category');
-				badge.setAttribute('data-filter-value', currentFilters.category);
-				badge.title = 'Click to remove this filter';
-				
-				// Get category name
-				const categoryName = document.querySelector(`.category-radio[value="${currentFilters.category}"] + label`).textContent;
-				
-				badge.innerHTML = `
-					<span>Category: ${categoryName}</span>
-					<span class="font-bold text-lg leading-none hover:text-gray-300 transition-colors">&times;</span>
-				`;
-				badgesContainer.appendChild(badge);
-			}
-
-			// Render price badge if a filter is active
-			if (currentFilters.price !== 'all') {
-				const badge = document.createElement('div');
-				badge.className = 'badge bg-green-500 text-white px-4 py-2 rounded-full cursor-pointer flex items-center gap-2 transform hover:scale-105 hover:bg-green-600 transition-all duration-200';
-				badge.setAttribute('data-filter-key', 'price');
-				badge.setAttribute('data-filter-value', currentFilters.price);
-				badge.title = 'Click to remove this filter';
-				
-				const [min, max] = currentFilters.price.split('-').map(Number);
-				const currencySymbol = '<?= $settings['currency'] ?? 'USD' ?>';
-				
-				badge.innerHTML = `
-					<span>Price: ${currencySymbol}${min} - ${currencySymbol}${max}</span>
-					<span class="font-bold text-lg leading-none hover:text-gray-300 transition-colors">&times;</span>
-				`;
-				badgesContainer.appendChild(badge);
-			}
-		}
-		
-		// Update products display
-		function updateProductsDisplay() {
-			const grid = document.getElementById('productsGrid');
-			const productCards = grid.querySelectorAll('.product-card');
-			
-			productCards.forEach(card => {
-				const productCategory = card.getAttribute('data-category');
-				const productPrice = parseFloat(card.getAttribute('data-price'));
-				
-				// Check category filter
-				const categoryMatch = currentFilters.category === 'all' || productCategory == currentFilters.category;
-				
-				// Check price filter
-				const priceMatch = currentFilters.price === 'all' || (() => {
-					const [min, max] = currentFilters.price.split('-').map(Number);
-					return productPrice >= min && productPrice <= max;
-				})();
-				
-				if (categoryMatch && priceMatch) {
-					card.style.display = 'block';
-					card.style.animation = 'fadeIn 0.3s ease-in';
-				} else {
-					card.style.display = 'none';
-				}
-			});
-		}
+		});
 	</script>
 
 	<!-- CSS for better category option styling -->
@@ -681,124 +625,313 @@
 		margin: 0;
 	}
 
-	.category-radio {
+	.category-option input[type="radio"] {
 		margin: 0;
 		width: 16px;
 		height: 16px;
-		accent-color: #667eea;
 	}
 
-	/* Pill Badge Hover Effects */
-	.category-pill-badge {
+	.filter-card {
+		background: white;
+		border-radius: 12px;
+		padding: 20px;
+		box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+		margin-bottom: 20px;
+	}
+
+	.filter-card h6 {
+		margin: 0 0 15px 0;
+		color: #333;
+		font-weight: 600;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.price-filter-container {
+		display: flex;
+		flex-direction: column;
+		gap: 15px;
+	}
+
+	.price-range-display {
+		display: flex;
+		justify-content: space-between;
+		font-size: 14px;
+		color: #666;
+	}
+
+	.price-slider-container {
+		position: relative;
+		height: 20px;
+	}
+
+	.price-slider-track {
+		position: absolute;
+		top: 50%;
+		left: 0;
+		right: 0;
+		height: 4px;
+		background: #ddd;
+		border-radius: 2px;
+		transform: translateY(-50%);
+	}
+
+	.price-slider-fill {
+		position: absolute;
+		top: 0;
+		height: 100%;
+		background: #2196F3;
+		border-radius: 2px;
+	}
+
+	.price-slider {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		width: 100%;
+		height: 20px;
+		background: transparent;
+		outline: none;
+		-webkit-appearance: none;
+		appearance: none;
+	}
+
+	.price-slider::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		appearance: none;
+		width: 20px;
+		height: 20px;
+		background: #2196F3;
+		border-radius: 50%;
+		cursor: pointer;
+		box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+	}
+
+	.price-slider::-moz-range-thumb {
+		width: 20px;
+		height: 20px;
+		background: #2196F3;
+		border-radius: 50%;
+		cursor: pointer;
+		border: none;
+		box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+	}
+
+	.price-inputs {
+		display: flex;
+		gap: 10px;
+	}
+
+	.price-input {
+		flex: 1;
+		padding: 8px 12px;
+		border: 1px solid #ddd;
+		border-radius: 6px;
+		font-size: 14px;
+	}
+
+	.badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		background: #2196F3;
+		color: white;
+		padding: 6px 12px;
+		border-radius: 20px;
+		font-size: 12px;
+		font-weight: 500;
+		cursor: pointer;
 		transition: all 0.3s ease;
-		cursor: default;
 	}
 
-	.category-pill-badge:hover {
-		transform: translateY(-2px);
-		box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+	.badge:hover {
+		background: #1976D2;
+		transform: scale(1.05);
 	}
 
-	.pill-close-btn {
-		transition: all 0.3s ease;
-	}
-
-	.pill-close-btn:hover {
-		transform: scale(1.1) rotate(90deg);
-		box-shadow: 0 6px 20px rgba(255, 87, 34, 0.4);
-		background: linear-gradient(135deg, #E64A19, #D84315);
-	}
-
-	/* Product Count Badge Styling */
-	.product-count-badge {
-		transition: all 0.3s ease;
-		cursor: default;
-	}
-
-	.product-count-badge:hover {
-		transform: translateY(-1px);
-		box-shadow: 0 3px 10px rgba(33, 150, 243, 0.2);
-		background: #F3E5F5;
-		border-color: #9C27B0;
-		color: #7B1FA2;
+	.badge i {
+		font-size: 10px;
 	}
 	</style>
 
-	<!-- Chatbot Widget -->
-	<div class="chatbot-widget" id="chatbotWidget">
-		<!-- Chat Button -->
-		                <div class="chat-button" id="chatButton">
-                    <i class="fa fa-comments"></i>
-                </div>
-		
-		<!-- Chat Window -->
-		<div class="chat-window" id="chatWindow">
-			<!-- Chat Header -->
-			<div class="chat-header">
-				<div class="chat-header-info">
-					<div class="chat-avatar">
-						<i class="fa fa-robot"></i>
+	<!-- footer -->
+	<footer>
+		<div class="container">
+			<div class="row">
+				<div class="col s12">
+					<div class="footer-content">
+						<p>&copy; <?= date('Y') ?> <?= $settings['store_name'] ?? 'Our Store' ?>. All rights reserved.</p>
 					</div>
-					<div class="chat-title">
-						<h4>RMB Store Assistant</h4>
-						<span class="status">Online</span>
-					</div>
-				</div>
-				<div class="chat-actions">
-					<button class="close-btn" id="closeBtn">
-						<i class="fa fa-times"></i>
-					</button>
-				</div>
-			</div>
-			
-			<!-- Chat Messages -->
-			<div class="chat-messages" id="chatMessages">
-				<!-- Welcome Message -->
-				<div class="message bot-message">
-					<div class="message-content">
-						<p>👋 Hi there! I'm your RMB Store assistant. How can I help you today?</p>
-						<span class="message-time">Just now</span>
-					</div>
-				</div>
-			</div>
-			
-			<!-- Mode Toggle -->
-			<div class="chat-mode-toggle">
-				<div class="mode-indicator" id="modeIndicator">🤖 Auto-Detect</div>
-				<div class="mode-buttons">
-					<button class="mode-btn active" data-mode="auto" title="Auto-detect mode">
-						<i class="fa fa-magic"></i>
-						<span>Auto</span>
-					</button>
-					<button class="mode-btn" data-mode="products" title="Product search mode">
-						<i class="fa fa-shopping-bag"></i>
-						<span>Products</span>
-					</button>
-					<button class="mode-btn" data-mode="store" title="Store inquiry mode">
-						<i class="fa fa-store"></i>
-						<span>Store</span>
-					</button>
-				</div>
-			</div>
-			
-			<!-- Chat Input -->
-			<div class="chat-input-container">
-				<div class="chat-input-wrapper">
-					<input type="text" id="chatInput" placeholder="Ask me anything... (auto-detect mode)" maxlength="500">
-					<button class="send-btn" id="sendBtn" title="Send Message">
-						<i class="fa fa-paper-plane"></i>
-					</button>
-				</div>
-				<div class="typing-indicator" id="typingIndicator">
-					<span></span>
-					<span></span>
-					<span></span>
 				</div>
 			</div>
 		</div>
-	</div>
+	</footer>
+	<!-- end footer -->
+
+	<!-- Chatbot Widget -->
+    <div class="chatbot-widget" id="chatbotWidget">
+        <!-- Chat Button -->
+                        <div class="chat-button" id="chatButton">
+                    <i class="fa fa-comments"></i>
+                </div>
+        
+        <!-- Chat Window -->
+        <div class="chat-window" id="chatWindow">
+            <!-- Chat Header -->
+            <div class="chat-header">
+                <div class="chat-header-info">
+                    <div class="chat-avatar">
+                        <i class="fa fa-robot"></i>
+                    </div>
+                    <div class="chat-title">
+                        <h4>RMB Store Assistant</h4>
+                        <span class="status">Online</span>
+                    </div>
+                </div>
+                <div class="chat-actions">
+                    <button class="close-btn" id="closeBtn">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Chat Messages -->
+            <div class="chat-messages" id="chatMessages">
+                <!-- Welcome Message -->
+                <div class="message bot-message">
+                    <div class="message-content">
+                        <p>👋 Hi there! I'm your RMB Store assistant. How can I help you today?</p>
+                        <span class="message-time">Just now</span>
+                    </div>
+                </div>
+                
+
+            </div>
+            
+            <!-- Mode Toggle -->
+            <div class="chat-mode-toggle">
+                <div class="mode-indicator" id="modeIndicator">🤖 Auto-Detect</div>
+                <div class="mode-buttons">
+                    <button class="mode-btn active" data-mode="auto" title="Auto-detect mode">
+                        <i class="fa fa-magic"></i>
+                        <span>Auto</span>
+                    </button>
+                    <button class="mode-btn" data-mode="products" title="Product search mode">
+                        <i class="fa fa-shopping-bag"></i>
+                        <span>Products</span>
+                    </button>
+                    <button class="mode-btn" data-mode="store" title="Store inquiry mode">
+                        <i class="fa fa-store"></i>
+                        <span>Store</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Chat Input -->
+            <div class="chat-input-container">
+                <div class="chat-input-wrapper">
+                    <input type="text" id="chatInput" placeholder="Ask me anything... (auto-detect mode)" maxlength="500">
+                    <button class="send-btn" id="sendBtn" title="Send Message">
+                        <i class="fa fa-paper-plane"></i>
+                    </button>
+                </div>
+                <div class="typing-indicator" id="typingIndicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    </div>
 
 	<script src="<?= base_url('assets/frontend/js/chatbot.js') ?>"></script>
+
+	<!-- Navigation Menu Styles -->
+	<style>
+		/* Navigation Menu Styles */
+		.nav-menu {
+			display: flex;
+			align-items: center;
+			gap: 20px;
+		}
+
+		.nav-list {
+			display: flex;
+			list-style: none;
+			margin: 0;
+			padding: 0;
+			gap: 20px;
+		}
+
+		.nav-link {
+			color: #333;
+			text-decoration: none;
+			font-weight: 500;
+			transition: color 0.3s ease;
+		}
+
+		.nav-link:hover {
+			color: #2196F3;
+		}
+
+		.search-icon-nav {
+			color: #333;
+			font-size: 18px;
+			text-decoration: none;
+			transition: color 0.3s ease;
+		}
+
+		.search-icon-nav:hover {
+			color: #2196F3;
+		}
+
+		.mobile-menu-toggle {
+			display: none;
+			flex-direction: column;
+			background: none;
+			border: none;
+			cursor: pointer;
+			padding: 5px;
+		}
+
+		.mobile-menu-toggle span {
+			width: 25px;
+			height: 3px;
+			background: #333;
+			margin: 3px 0;
+			transition: 0.3s;
+		}
+
+		@media (max-width: 768px) {
+			.nav-list {
+				display: none;
+			}
+
+			.mobile-menu-toggle {
+				display: flex;
+			}
+
+			.nav-menu {
+				gap: 10px;
+			}
+		}
+	</style>
+
+	<!-- Navigation Menu JavaScript -->
+	<script>
+		document.addEventListener('DOMContentLoaded', function() {
+			const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+			const slideOut = document.getElementById('slide-out');
+			
+			if (mobileMenuToggle && slideOut) {
+				mobileMenuToggle.addEventListener('click', function() {
+					slideOut.classList.toggle('active');
+				});
+			}
+		});
+	</script>
 
 </body>
 </html>

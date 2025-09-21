@@ -9,265 +9,217 @@
             <p class="text-muted mb-0"><?= $subTitle ?></p>
         </div>
         <div>
-            <a href="/products" class="btn btn-secondary">
+                         <a href="<?= base_url('admin/products') ?>" class="btn btn-secondary">
                 <i class="uil uil-arrow-left"></i> Back to Products
             </a>
         </div>
     </div>
 
-    <!-- Step Progress Indicator -->
-    <div class="step-progress mb-4">
-        <div class="progress" style="height: 8px;">
-            <div class="progress-bar" id="progressBar" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
-        </div>
-        <div class="d-flex justify-content-between mt-2">
-            <span class="step-indicator active" id="step1Indicator">
-                <i class="uil uil-check-circle"></i> Basic Info (3 required)
-            </span>
-            <span class="step-indicator" id="step2Indicator">
-                <i class="uil uil-circle"></i> Additional Details
-            </span>
-        </div>
-    </div>
-
     <!-- Create Form -->
-    <form action="/admin/products/store" method="POST" enctype="multipart/form-data" id="productForm">
-        <!-- Step 1: Essential Information -->
-        <div class="step-content" id="step1">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="uil uil-info-circle me-2"></i>
-                        Step 1: Basic Product Information
-                    </h5>
-                    <small>Fill in the essential details to get your product online quickly (Only Product Name, Category, and Photo are required)</small>
+    <!-- Using base_url() helper to prevent URL mismatch issues -->
+                                       <form action="<?= base_url('admin/products/store') ?>" method="POST" enctype="multipart/form-data" id="productForm">
+                                        <?= csrf_field() ?>
+                     
+        <!-- Product Name -->
+        <div class="mb-4">
+            <label for="product_name" class="form-label fw-bold">
+                <i class="uil uil-tag me-2"></i>Product Name *
+            </label>
+            <input type="text" class="form-control form-control-lg <?= session()->getFlashdata('errors.product_name') ? 'is-invalid' : '' ?>" 
+                   id="product_name" name="product_name" 
+                   value="<?= old('product_name') ?>" 
+                   placeholder="Enter your product name here..."
+                   required>
+            <?php if (session()->getFlashdata('errors.product_name')): ?>
+                <div class="invalid-feedback">
+                    <?= session()->getFlashdata('errors.product_name') ?>
                 </div>
-                <div class="card-body">
-                    <!-- Product Name -->
-                    <div class="mb-4">
-                        <label for="product_name" class="form-label fw-bold">
-                            <i class="uil uil-tag me-2"></i>Product Name *
-                        </label>
-                        <input type="text" class="form-control form-control-lg <?= session()->getFlashdata('errors.product_name') ? 'is-invalid' : '' ?>" 
-                               id="product_name" name="product_name" 
-                               value="<?= old('product_name') ?>" 
-                               placeholder="Enter your product name here..."
-                               required>
-                        <?php if (session()->getFlashdata('errors.product_name')): ?>
-                            <div class="invalid-feedback">
-                                <?= session()->getFlashdata('errors.product_name') ?>
-                            </div>
-                        <?php endif; ?>
-                        <small class="text-muted">This is what customers will see first</small>
-                    </div>
+            <?php endif; ?>
+            <small class="text-muted">This is what customers will see first</small>
+        </div>
 
-                    <!-- Category -->
-                    <div class="mb-4">
-                        <label for="product_category" class="form-label fw-bold">
-                            <i class="uil uil-folder me-2"></i>Category *
-                        </label>
-                        <select class="form-select form-select-lg <?= session()->getFlashdata('errors.product_category') ? 'is-invalid' : '' ?>" 
-                                id="product_category" name="product_category" required>
-                            <option value="">Choose a category...</option>
-                            <?php foreach ($categories as $category): ?>
-                                <option value="<?= $category['id'] ?>" 
-                                        <?= old('product_category') == $category['id'] ? 'selected' : '' ?>>
-                                    <?= esc($category['name']) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                        <?php if (session()->getFlashdata('errors.product_category')): ?>
-                            <div class="invalid-feedback">
-                                <?= session()->getFlashdata('errors.product_category') ?>
-                            </div>
-                        <?php endif; ?>
-                        <small class="text-muted">Where should customers find this product?</small>
-                    </div>
+        <!-- Category -->
+        <div class="mb-4">
+            <label for="product_category" class="form-label fw-bold">
+                <i class="uil uil-folder me-2"></i>Category *
+            </label>
+            <select class="form-select form-select-lg <?= session()->getFlashdata('errors.product_category') ? 'is-invalid' : '' ?>" 
+                    id="product_category" name="product_category" required>
+                <option value="">Choose a category...</option>
+                <?php foreach ($categories as $category): ?>
+                    <option value="<?= $category['id'] ?>" 
+                            <?= old('product_category') == $category['id'] ? 'selected' : '' ?>>
+                        <?= esc($category['name']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <?php if (session()->getFlashdata('errors.product_category')): ?>
+                <div class="invalid-feedback">
+                    <?= session()->getFlashdata('errors.product_category') ?>
+                </div>
+            <?php endif; ?>
+            <small class="text-muted">Where should customers find this product?</small>
+        </div>
 
-                    <!-- Price -->
-                    <div class="mb-4">
-                        <label for="price" class="form-label fw-bold">
-                            <i class="uil uil-money me-2"></i>Price
-                        </label>
-                        <div class="input-group input-group-lg">
-                            <span class="input-group-text"><?= currency_symbol() ?></span>
-                            <input type="number" step="0.01" class="form-control <?= session()->getFlashdata('errors.price') ? 'is-invalid' : '' ?>" 
-                                   id="price" name="price" 
-                                   value="<?= old('price') ?>" 
-                                   placeholder="0.00">
-                        </div>
-                        <?php if (session()->getFlashdata('errors.price')): ?>
-                            <div class="invalid-feedback">
-                                <?= session()->getFlashdata('errors.price') ?>
-                            </div>
-                        <?php endif; ?>
-                        <small class="text-muted">How much does this product cost? (Optional)</small>
-                    </div>
+        <!-- Price -->
+        <div class="mb-4">
+            <label for="price" class="form-label fw-bold">
+                <i class="uil uil-money me-2"></i>Price
+            </label>
+            <div class="input-group input-group-lg">
+                <span class="input-group-text"><?= currency_symbol() ?></span>
+                <input type="number" step="0.01" class="form-control <?= session()->getFlashdata('errors.price') ? 'is-invalid' : '' ?>" 
+                       id="price" name="price" 
+                       value="<?= old('price') ?>" 
+                       placeholder="0.00">
+            </div>
+            <?php if (session()->getFlashdata('errors.price')): ?>
+                <div class="invalid-feedback">
+                    <?= session()->getFlashdata('errors.price') ?>
+                </div>
+            <?php endif; ?>
+            <small class="text-muted">How much does this product cost? (Optional)</small>
+        </div>
 
-                    <!-- Main Product Image -->
-                    <div class="mb-4">
-                        <label for="image_icon" class="form-label fw-bold">
-                            <i class="uil uil-image me-2"></i>Main Product Photo *
-                        </label>
-                        <div class="image-upload-container">
-                            <div class="upload-area" id="uploadArea">
-                                <i class="uil uil-cloud-upload upload-icon"></i>
-                                <p class="upload-text">Tap here to add a photo</p>
-                                <p class="upload-hint">or drag and drop</p>
-                                <small class="text-muted">Recommended: Square image, Max: 2MB</small>
-                            </div>
-                            <input type="file" class="form-control d-none" id="image_icon" name="image_icon" 
-                                   accept="image/*" onchange="handleImageUpload(this, 'icon-preview', 'icon')" required>
-                        </div>
-                        <div class="image-preview mt-3" id="icon-preview"></div>
-                    </div>
+        <!-- Main Product Image for Frontend (image_post) - REQUIRED -->
+        <div class="mb-4">
+            <label for="image_post" class="form-label fw-bold">
+                <i class="uil uil-image me-2"></i>Frontend Product Image * (REQUIRED)
+            </label>
+            <div class="image-upload-container">
+                <div class="upload-area" id="uploadAreaPost">
+                    <i class="uil uil-cloud-upload upload-icon"></i>
+                    <p class="upload-text">Tap here to add a frontend image</p>
+                    <p class="upload-hint">or drag and drop</p>
+                    <small class="text-muted">Required: Square (1:1) ratio, Max: 5MB</small>
+                </div>
+                <input type="file" class="form-control d-none" id="image_post" name="image_post" 
+                       accept="image/*" onchange="handleImageUpload(this, 'post-preview', 'post')" required>
+            </div>
+            <div class="image-preview mt-3" id="post-preview"></div>
+        </div>
+
+        <!-- Product Icon for Admin Table (image_icon) - OPTIONAL -->
+        <div class="mb-4">
+            <label for="image_icon" class="form-label fw-bold">
+                <i class="uil uil-image me-2"></i>Admin Table Icon (Optional)
+            </label>
+            <div class="image-upload-container">
+                <div class="upload-area" id="uploadAreaIcon">
+                    <i class="uil uil-cloud-upload upload-icon"></i>
+                    <p class="upload-text">Tap here to add an admin icon</p>
+                    <p class="upload-hint">or drag and drop</p>
+                    <small class="text-muted">Optional: Square image, Max: 2MB</small>
+                </div>
+                <input type="file" class="form-control d-none" id="image_icon" name="image_icon" 
+                       accept="image/*" onchange="handleImageUpload(this, 'icon-preview', 'icon')">
+            </div>
+            <div class="image-preview mt-3" id="icon-preview"></div>
+        </div>
 
                                          <!-- Short Description -->
-                     <div class="mb-4">
-                         <label for="short_description" class="form-label fw-bold">
-                             <i class="uil uil-comment me-2"></i>Brief Description
-                         </label>
-                         <textarea class="form-control" id="short_description" name="short_description" 
-                                   rows="3" 
-                                   placeholder="Describe your product in 2-3 sentences... (Optional)"><?= old('short_description') ?></textarea>
-                         <small class="text-muted">Keep it short and appealing to customers (Optional)</small>
-                     </div>
+         <div class="mb-4">
+             <label for="short_description" class="form-label fw-bold">
+                 <i class="uil uil-comment me-2"></i>Brief Description
+             </label>
+             <textarea class="form-control" id="short_description" name="short_description" 
+                       rows="3" 
+                       placeholder="Describe your product in 2-3 sentences... (Optional)"><?= old('short_description') ?></textarea>
+             <small class="text-muted">Keep it short and appealing to customers (Optional)</small>
+         </div>
 
-                     <!-- Hidden SKU field for auto-generation -->
-                     <input type="hidden" id="sku" name="sku" value="">
+         <!-- Hidden SKU field for auto-generation -->
+         <input type="hidden" id="sku" name="sku" value="">
 
-                    <!-- Step 1 Actions -->
-                    <div class="d-grid">
-                        <button type="button" class="btn btn-primary btn-lg" onclick="nextStep()">
-                            <i class="uil uil-arrow-right me-2"></i>Continue to Details
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+         <!-- Additional Fields -->
+         <!-- Full Description -->
+         <div class="mb-4">
+             <label for="description" class="form-label fw-bold">
+                 <i class="uil uil-file-text me-2"></i>Detailed Description
+             </label>
+             <textarea class="form-control" id="description" name="description" 
+                       rows="4" 
+                       placeholder="Tell customers everything they need to know about this product..."><?= old('description') ?></textarea>
+             <small class="text-muted">Optional: More detailed information about features, benefits, etc.</small>
+         </div>
 
-        <!-- Step 2: Additional Details -->
-        <div class="step-content d-none" id="step2">
-            <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">
-                        <i class="uil uil-plus-circle me-2"></i>
-                        Step 2: Additional Details (Optional)
-                    </h5>
-                    <small>Add more information to make your product stand out</small>
-                </div>
-                <div class="card-body">
-                    <!-- Full Description -->
-                    <div class="mb-4">
-                        <label for="description" class="form-label fw-bold">
-                            <i class="uil uil-file-text me-2"></i>Detailed Description
-                        </label>
-                        <textarea class="form-control" id="description" name="description" 
-                                  rows="4" 
-                                  placeholder="Tell customers everything they need to know about this product..."><?= old('description') ?></textarea>
-                        <small class="text-muted">Optional: More detailed information about features, benefits, etc.</small>
-                    </div>
+         <!-- Sale Price -->
+         <div class="mb-4">
+             <label for="sale_price" class="form-label fw-bold">
+                 <i class="uil uil-money me-2"></i>Sale Price
+             </label>
+             <div class="input-group input-group-lg">
+                 <span class="input-group-text"><?= currency_symbol() ?></span>
+                 <input type="number" step="0.01" class="form-control" 
+                        id="sale_price" name="sale_price" 
+                        value="<?= old('sale_price') ?>" 
+                        placeholder="0.00">
+             </div>
+             <small class="text-muted">Leave empty if no discount</small>
+         </div>
 
-                    <!-- Sale Price -->
-                    <div class="mb-4">
-                        <label for="sale_price" class="form-label fw-bold">
-                            <i class="uil uil-money me-2"></i>Sale Price
-                        </label>
-                        <div class="input-group input-group-lg">
-                            <span class="input-group-text"><?= currency_symbol() ?></span>
-                            <input type="number" step="0.01" class="form-control" 
-                                   id="sale_price" name="sale_price" 
-                                   value="<?= old('sale_price') ?>" 
-                                   placeholder="0.00">
-                        </div>
-                        <small class="text-muted">Leave empty if no discount</small>
-                    </div>
+         <!-- Stock Quantity -->
+         <div class="mb-4">
+             <label for="stock_quantity" class="form-label fw-bold">
+                 <i class="uil uil-box me-2"></i>Stock Quantity
+             </label>
+             <input type="number" class="form-control form-control-lg" 
+                    id="stock_quantity" name="stock_quantity" 
+                    value="<?= old('stock_quantity') ?: '0' ?>" 
+                    placeholder="0">
+             <small class="text-muted">How many do you have in stock?</small>
+         </div>
 
-                    <!-- Stock Quantity -->
-                    <div class="mb-4">
-                        <label for="stock_quantity" class="form-label fw-bold">
-                            <i class="uil uil-box me-2"></i>Stock Quantity
-                        </label>
-                        <input type="number" class="form-control form-control-lg" 
-                               id="stock_quantity" name="stock_quantity" 
-                               value="<?= old('stock_quantity') ?: '0' ?>" 
-                               placeholder="0">
-                        <small class="text-muted">How many do you have in stock?</small>
-                    </div>
+         <!-- Status -->
+         <div class="mb-4">
+             <label for="status" class="form-label fw-bold">
+                 <i class="uil uil-toggle-on me-2"></i>Product Status
+             </label>
+             <select class="form-select form-select-lg" id="status" name="status">
+                 <option value="active" <?= old('status') === 'active' ? 'selected' : '' ?>>Active - Show to customers</option>
+                 <option value="draft" <?= old('status') === 'draft' ? 'selected' : '' ?>>Draft - Save for later</option>
+                 <option value="inactive" <?= old('status') === 'inactive' ? 'selected' : '' ?>>Inactive - Hide from customers</option>
+             </select>
+             <small class="text-muted">Choose when customers can see this product</small>
+         </div>
 
-                    <!-- Status -->
-                    <div class="mb-4">
-                        <label for="status" class="form-label fw-bold">
-                            <i class="uil uil-toggle-on me-2"></i>Product Status
-                        </label>
-                        <select class="form-select form-select-lg" id="status" name="status">
-                            <option value="active" <?= old('status') === 'active' ? 'selected' : '' ?>>Active - Show to customers</option>
-                            <option value="draft" <?= old('status') === 'draft' ? 'selected' : '' ?>>Draft - Save for later</option>
-                            <option value="inactive" <?= old('status') === 'inactive' ? 'selected' : '' ?>>Inactive - Hide from customers</option>
-                        </select>
-                        <small class="text-muted">Choose when customers can see this product</small>
-                    </div>
+         <!-- Gallery Images -->
+         <div class="mb-4">
+             <label for="gallery_images" class="form-label fw-bold">
+                 <i class="uil uil-images me-2"></i>Additional Photos
+             </label>
+             <div class="image-upload-container">
+                 <div class="upload-area" id="galleryUploadArea">
+                     <i class="uil uil-image-plus upload-icon"></i>
+                     <p class="upload-text">Add more photos</p>
+                     <p class="upload-hint">Up to 6 images</p>
+                     <small class="text-muted">Max: 10MB each</small>
+                 </div>
+                 <input type="file" class="form-control d-none" id="gallery_images" name="gallery_images[]" 
+                        accept="image/*" multiple onchange="handleGalleryImages(this)">
+             </div>
+             <div class="gallery-preview mt-3" id="gallery-preview"></div>
+         </div>
 
-                    <!-- Post Image -->
-                    <div class="mb-4">
-                        <label for="image_post" class="form-label fw-bold">
-                            <i class="uil uil-image-plus me-2"></i>Post Image
-                        </label>
-                        <div class="image-upload-container">
-                            <div class="upload-area" id="postUploadArea">
-                                <i class="uil uil-image-plus upload-icon"></i>
-                                <p class="upload-text">Add a post image</p>
-                                <p class="upload-hint">Recommended: 400x300px</p>
-                                <small class="text-muted">Max: 5MB</small>
-                            </div>
-                            <input type="file" class="form-control d-none" id="image_post" name="image_post" 
-                                   accept="image/*" onchange="handleImageUpload(this, 'post-preview', 'post')">
-                        </div>
-                        <div class="image-preview mt-3" id="post-preview"></div>
-                    </div>
+         <!-- Featured Product -->
+         <div class="mb-4">
+             <div class="form-check form-check-lg">
+                 <input class="form-check-input" type="checkbox" id="featured" name="featured" value="1" 
+                        <?= old('featured') ? 'checked' : '' ?>>
+                 <label class="form-check-label fw-bold" for="featured">
+                     <i class="uil uil-star me-2"></i>Feature this product on homepage
+                 </label>
+             </div>
+             <small class="text-muted">Highlight this product to get more attention</small>
+         </div>
 
-                    <!-- Gallery Images -->
-                    <div class="mb-4">
-                        <label for="gallery_images" class="form-label fw-bold">
-                            <i class="uil uil-images me-2"></i>Additional Photos
-                        </label>
-                        <div class="image-upload-container">
-                            <div class="upload-area" id="galleryUploadArea">
-                                <i class="uil uil-image-plus upload-icon"></i>
-                                <p class="upload-text">Add more photos</p>
-                                <p class="upload-hint">Up to 6 images</p>
-                                <small class="text-muted">Max: 10MB each</small>
-                            </div>
-                            <input type="file" class="form-control d-none" id="gallery_images" name="gallery_images[]" 
-                                   accept="image/*" multiple onchange="handleGalleryImages(this)">
-                        </div>
-                        <div class="gallery-preview mt-3" id="gallery-preview"></div>
-                    </div>
-
-                    <!-- Featured Product -->
-                    <div class="mb-4">
-                        <div class="form-check form-check-lg">
-                            <input class="form-check-input" type="checkbox" id="featured" name="featured" value="1" 
-                                   <?= old('featured') ? 'checked' : '' ?>>
-                            <label class="form-check-label fw-bold" for="featured">
-                                <i class="uil uil-star me-2"></i>Feature this product on homepage
-                            </label>
-                        </div>
-                        <small class="text-muted">Highlight this product to get more attention</small>
-                    </div>
-
-                    <!-- Step 2 Actions -->
-                    <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-secondary btn-lg flex-fill" onclick="previousStep()">
-                            <i class="uil uil-arrow-left me-2"></i>Back
-                        </button>
-                        <button type="submit" class="btn btn-success btn-lg flex-fill">
-                            <i class="uil uil-check me-2"></i>Create Product
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+                                       <!-- Submit Button -->
+           <div class="d-flex gap-2">
+               <button type="submit" class="btn btn-success btn-lg flex-fill">
+                   <i class="uil uil-check me-2"></i>Create Product
+               </button>
+               
+           </div>
     </form>
 </div>
 
@@ -275,79 +227,8 @@
 
 <?= $this->section('custom_scripts'); ?>
 <!-- Image Cropper Library -->
-<script src="<?= base_url('assets/js/image-cropper.js') ?>"></script>
+
 <script>
-let currentStep = 1;
-
-// Step navigation functions
-function nextStep() {
-    if (validateStep1()) {
-        document.getElementById('step1').classList.add('d-none');
-        document.getElementById('step2').classList.remove('d-none');
-        document.getElementById('step1Indicator').classList.remove('active');
-        document.getElementById('step2Indicator').classList.add('active');
-        document.getElementById('progressBar').style.width = '100%';
-        currentStep = 2;
-        window.scrollTo(0, 0);
-    }
-}
-
-function previousStep() {
-    document.getElementById('step2').classList.add('d-none');
-    document.getElementById('step1').classList.remove('d-none');
-    document.getElementById('step2Indicator').classList.remove('active');
-    document.getElementById('step1Indicator').classList.add('active');
-    document.getElementById('progressBar').style.width = '50%';
-    currentStep = 1;
-    window.scrollTo(0, 0);
-}
-
-// Validation for step 1
-function validateStep1() {
-    const requiredFields = ['product_name', 'product_category', 'image_icon'];
-    let isValid = true;
-    
-    // Check required fields
-    requiredFields.forEach(fieldId => {
-        const field = document.getElementById(fieldId);
-        if (!field.value.trim()) {
-            field.classList.add('is-invalid');
-            isValid = false;
-        } else {
-            field.classList.remove('is-invalid');
-        }
-    });
-    
-    // Validate price if provided
-    const priceField = document.getElementById('price');
-    if (priceField.value.trim() && parseFloat(priceField.value) <= 0) {
-        priceField.classList.add('is-invalid');
-        isValid = false;
-        alert('Price must be greater than 0 if provided.');
-        return false;
-    } else {
-        priceField.classList.remove('is-invalid');
-    }
-    
-    // Validate short description if provided
-    const descField = document.getElementById('short_description');
-    if (descField.value.trim() && descField.value.trim().length < 10) {
-        descField.classList.add('is-invalid');
-        isValid = false;
-        alert('Brief description must be at least 10 characters if provided.');
-        return false;
-    } else {
-        descField.classList.remove('is-invalid');
-    }
-    
-    if (!isValid) {
-        alert('Please fill in all required fields before continuing.\n\nRequired: Product Name, Category, and Photo');
-        window.scrollTo(0, 0);
-    }
-    
-    return isValid;
-}
-
 // Auto-generate SKU from product name
 document.getElementById('product_name').addEventListener('input', function() {
     const productName = this.value;
@@ -366,69 +247,122 @@ document.getElementById('product_name').addEventListener('input', function() {
 });
 
 // Image upload area click handlers
-document.getElementById('uploadArea').addEventListener('click', function() {
-    document.getElementById('image_icon').click();
-});
-
-document.getElementById('galleryUploadArea').addEventListener('click', function() {
-    document.getElementById('gallery_images').click();
-});
-
-document.getElementById('postUploadArea').addEventListener('click', function() {
+document.getElementById('uploadAreaPost').addEventListener('click', function() {
     document.getElementById('image_post').click();
 });
 
-// Enhanced image handling with Cropper.js library
-function handleImageUpload(input, previewId, type) {
-    const preview = document.getElementById(previewId);
-    preview.innerHTML = '';
-    
-    if (input.files && input.files[0]) {
-        const file = input.files[0];
-        
-        // Validate file size
-        const maxSize = type === 'icon' ? 2 * 1024 * 1024 : 5 * 1024 * 1024; // 2MB for icon, 5MB for post
-        if (file.size > maxSize) {
-            alert(`File size too large. Maximum ${maxSize / 1024 / 1024}MB allowed.`);
-            input.value = '';
-            return;
-        }
-        
-        // Validate file type
-        if (!file.type.match('image.*')) {
-            alert('Please select an image file.');
-            input.value = '';
-            return;
-        }
-        
-        // Configure cropper options based on type
-        const cropperOptions = {
-            aspectRatio: type === 'icon' ? 1 : 4/3, // Square for icon, 4:3 for post
-            title: type === 'icon' ? 'Crop Product Icon' : 'Crop Product Image',
-            outputWidth: type === 'icon' ? 200 : 400,
-            outputHeight: type === 'icon' ? 200 : 300,
-            onCrop: function(croppedFile, dataUrl) {
-                // Update the file input with the cropped file
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(croppedFile);
-                input.files = dataTransfer.files;
+document.getElementById('uploadAreaIcon').addEventListener('click', function() {
+    document.getElementById('image_icon').click();
+});
+
+        // Enhanced image handling with Cropper.js library
+        function handleImageUpload(input, previewId, type) {
+            const preview = document.getElementById(previewId);
+            preview.innerHTML = '';
+            
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
                 
-                // Show preview
-                showImagePreview(previewId, dataUrl, type);
-            },
-            onCancel: function() {
-                // Reset the input if user cancels
-                input.value = '';
-                preview.innerHTML = '';
+                // Validate file size
+                const maxSize = type === 'icon' ? 2 * 1024 * 1024 : 5 * 1024 * 1024; // 2MB for icon, 5MB for post
+                if (file.size > maxSize) {
+                    alert(`File size too large. Maximum ${maxSize / 1024 / 1024}MB allowed.`);
+                    input.value = '';
+                    return;
+                }
+                
+                // Validate file type
+                if (!file.type.match('image.*')) {
+                    alert('Please select an image file.');
+                    input.value = '';
+                    return;
+                }
+                
+                // Create preview image for cropping
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imagePreview = document.createElement('img');
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.maxWidth = '100%';
+                    imagePreview.style.maxHeight = '300px';
+                    
+                    // Clear preview and add image
+                    preview.innerHTML = '';
+                    preview.appendChild(imagePreview);
+
+                    // Configure cropper options based on type
+                    const aspectRatio = 1; // Square (1:1) for both icon and post images
+                    
+                    // Initialize Cropper.js
+                    const cropper = new Cropper(imagePreview, {
+                        aspectRatio: aspectRatio,
+                        viewMode: 1,
+                        dragMode: 'move',
+                        autoCropArea: 1,
+                        restore: false,
+                        guides: true,
+                        center: true,
+                        highlight: false,
+                        cropBoxMovable: true,
+                        cropBoxResizable: true,
+                        toggleDragModeOnDblclick: false,
+                        minCropBoxWidth: 100,
+                        minCropBoxHeight: 100,
+                        strict: true,  // Strictly enforce aspect ratio
+                    });
+
+                    // Add crop button
+                    const cropButton = document.createElement('button');
+                    cropButton.type = 'button';
+                    cropButton.className = 'btn btn-primary btn-sm mt-2 me-2';
+                    cropButton.innerHTML = '<i class="uil uil-crop"></i> Crop Image';
+                    cropButton.onclick = function() {
+                        const canvas = cropper.getCroppedCanvas({
+                            width: type === 'icon' ? 200 : 400,
+                            height: type === 'icon' ? 200 : 400  // Square for both icon and post
+                        });
+                        
+                        // Convert canvas to blob and update file input
+                        canvas.toBlob(function(blob) {
+                            const croppedFile = new File([blob], file.name, { type: file.type });
+                            
+                            const dataTransfer = new DataTransfer();
+                            dataTransfer.items.add(croppedFile);
+                            input.files = dataTransfer.files;
+                            
+                            // Show final preview
+                            showImagePreview(previewId, canvas.toDataURL(), type);
+                            
+                            // Clean up cropper
+                            cropper.destroy();
+                            
+                            // Add a small delay to ensure file is properly attached
+                            setTimeout(() => {
+                                // Force a DOM update to ensure the file input is properly synchronized
+                                input.dispatchEvent(new Event('change', { bubbles: true }));
+                            }, 100);
+                        }, file.type);
+                    };
+                    
+                    // Add cancel button
+                    const cancelButton = document.createElement('button');
+                    cancelButton.type = 'button';
+                    cancelButton.className = 'btn btn-secondary btn-sm mt-2';
+                    cancelButton.innerHTML = '<i class="uil uil-times"></i> Cancel';
+                    cancelButton.onclick = function() {
+                        cropper.destroy();
+                        preview.innerHTML = '';
+                        input.value = '';
+                    };
+                    
+                    // Add buttons to preview
+                    preview.appendChild(cropButton);
+                    preview.appendChild(cancelButton);
+                };
+                
+                reader.readAsDataURL(file);
             }
-        };
-        
-        // Show cropper
-        ImageCropper.crop(file, cropperOptions).catch(error => {
-            console.log('Cropping cancelled or failed:', error.message);
-        });
-    }
-}
+        }
 
 // Show image preview after cropping
 function showImagePreview(previewId, imageData, type) {
@@ -453,8 +387,21 @@ function showImagePreview(previewId, imageData, type) {
     removeBtn.className = 'btn btn-sm btn-danger mt-2';
     removeBtn.innerHTML = '<i class="uil uil-trash-alt me-1"></i>Remove';
     removeBtn.onclick = function() {
-        const fileInput = preview.closest('.col-12').querySelector('input[type="file"]');
-        fileInput.value = '';
+        // Find the correct file input based on preview ID
+        let fileInputId = '';
+        if (previewId === 'post-preview') {
+            fileInputId = 'image_post';
+        } else if (previewId === 'icon-preview') {
+            fileInputId = 'image_icon';
+        }
+        
+        if (fileInputId) {
+            const fileInput = document.getElementById(fileInputId);
+            if (fileInput) {
+                fileInput.value = '';
+                
+            }
+        }
         preview.innerHTML = '';
     };
     
@@ -495,8 +442,21 @@ function showFinalPreview(previewId, imageData, type) {
     removeBtn.className = 'btn btn-sm btn-danger mt-2';
     removeBtn.innerHTML = '<i class="uil uil-trash-alt me-1"></i>Remove';
     removeBtn.onclick = function() {
-        const fileInput = preview.closest('.col-12').querySelector('input[type="file"]');
-        fileInput.value = '';
+        // Find the correct file input based on preview ID
+        let fileInputId = '';
+        if (previewId === 'post-preview') {
+            fileInputId = 'image_post';
+        } else if (previewId === 'icon-preview') {
+            fileInputId = 'image_icon';
+        }
+        
+        if (fileInputId) {
+            const fileInput = document.getElementById(fileInputId);
+            if (fileInput) {
+                fileInput.value = '';
+                
+            }
+        }
         preview.innerHTML = '';
     };
     
@@ -664,26 +624,78 @@ function showImageModal(imageSrc, title) {
 
 // Form submission
 document.getElementById('productForm').addEventListener('submit', function(e) {
-    if (!validateStep1()) {
-        e.preventDefault();
-        alert('Please complete Step 1 before submitting.');
-        return false;
-    }
+    // Let the form submit naturally
+    return true;
 });
 
-// Show success/error messages if any
-<?php if (session()->getFlashdata('success')): ?>
-    // You can add toast notification here
-    console.log('Success: <?= session()->getFlashdata('success') ?>');
-<?php endif; ?>
 
-<?php if (session()->getFlashdata('error')): ?>
-    // You can add toast notification here
-    console.log('Error: <?= session()->getFlashdata('error') ?>');
-<?php endif; ?>
+
+// Show success/error messages if any
+$(document).ready(function() {
+    <?php if (session()->getFlashdata('success')): ?>
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: '<?= session()->getFlashdata('success') ?>',
+                timer: 3000,
+                showConfirmButton: false
+            });
+        } else {
+            alert('<?= session()->getFlashdata('success') ?>');
+        }
+    <?php endif; ?>
+
+    <?php if (session()->getFlashdata('error')): ?>
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: '<?= session()->getFlashdata('error') ?>',
+                confirmButtonColor: '#d33'
+            });
+        } else {
+            alert('Error: <?= session()->getFlashdata('error') ?>');
+        }
+    <?php endif; ?>
+
+    <?php if (session()->getFlashdata('validation_errors')): ?>
+        let validationErrors = '';
+        <?php foreach (session()->getFlashdata('validation_errors') as $field => $error): ?>
+            validationErrors += '• <?= ucfirst(str_replace('_', ' ', $field)) ?>: <?= $error ?>\n';
+        <?php endforeach; ?>
+        
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Validation Failed',
+                text: validationErrors,
+                confirmButtonColor: '#f39c12',
+                confirmButtonText: 'Fix Errors'
+            });
+        } else {
+            alert('Validation Failed:\n' + validationErrors);
+        }
+    <?php endif; ?>
+});
 </script>
 
 <style>
+/* Mobile viewport and responsive fixes */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+
+.geex-content__section {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
 /* Image preview styles */
 .image-preview-container {
     margin: 15px 0;
@@ -864,22 +876,48 @@ document.getElementById('productForm').addEventListener('submit', function(e) {
 
 /* Mobile optimizations */
 @media (max-width: 768px) {
+    .geex-content__section {
+        padding: 15px;
+        margin: 0;
+    }
+    
     .card-body {
-        padding: 20px;
+        padding: 15px;
+    }
+    
+    .card {
+        margin-bottom: 20px;
+        border-radius: 12px;
     }
     
     .btn-lg {
         padding: 15px 25px;
         font-size: 16px;
+        width: 100%;
     }
     
     .form-control-lg, .form-select-lg {
         padding: 15px 18px;
         font-size: 16px;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .input-group {
+        width: 100%;
+    }
+    
+    .input-group-text {
+        font-size: 16px;
+        padding: 15px 18px;
     }
     
     .image-upload-container {
-        padding: 20px;
+        padding: 20px 15px;
+        margin: 0;
+        width: 100%;
+        box-sizing: border-box;
     }
     
     .upload-icon {
@@ -888,6 +926,103 @@ document.getElementById('productForm').addEventListener('submit', function(e) {
     
     .upload-text {
         font-size: 16px;
+    }
+    
+    .upload-hint {
+        font-size: 13px;
+    }
+    
+    .step-progress {
+        margin-bottom: 20px;
+    }
+    
+    .step-indicator {
+        font-size: 14px;
+        padding: 8px 12px;
+    }
+    
+    .d-flex.justify-content-between {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .d-flex.justify-content-between > div {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .btn-secondary {
+        width: 100%;
+        margin-bottom: 15px;
+    }
+    
+    .form-label {
+        font-size: 16px;
+        margin-bottom: 8px;
+    }
+    
+    .text-muted {
+        font-size: 14px;
+    }
+    
+    .invalid-feedback {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .geex-content__section {
+        padding: 10px;
+    }
+    
+    .card-body {
+        padding: 12px;
+    }
+    
+    .image-upload-container {
+        padding: 15px 10px;
+    }
+    
+    .upload-icon {
+        font-size: 32px;
+    }
+    
+    .upload-text {
+        font-size: 15px;
+    }
+    
+    .step-indicator {
+        font-size: 13px;
+        padding: 6px 10px;
+    }
+    
+    .btn-lg {
+        padding: 12px 20px;
+        font-size: 15px;
+    }
+    
+    /* Prevent horizontal scrolling on very small screens */
+    .container, .row, .col {
+        max-width: 100%;
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+    
+    .card {
+        margin-left: 5px;
+        margin-right: 5px;
+    }
+    
+    /* Ensure form elements fit properly */
+    input, select, textarea {
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Fix any potential overflow issues */
+    .geex-content {
+        overflow-x: hidden;
+        max-width: 100vw;
     }
 }
 

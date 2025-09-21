@@ -67,7 +67,7 @@
                             </ul>
                         </div>
                         <div class="geex-content__header__popup__footer">
-                            <a href="#" class="geex-content__header__popup__footer__link">
+                            <a href="<?= base_url('admin/logout') ?>" class="geex-content__header__popup__footer__link">
                                 <i class="uil uil-arrow-up-left"></i>Logout
                             </a>
                         </div>

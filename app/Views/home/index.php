@@ -18,7 +18,7 @@
                     - Business hours: 8:00 AM - 10:00 PM
                 -->
                 <!-- Store status indicator removed - not needed -->
-            </div>
+            </div>e i 
         </div>
 
         <!-- Statistics Cards -->

@@ -1,11 +1,10 @@
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="X-UA-Compatible" content="ie=edge"> 
     <meta name="author" content="PIXCELSTHEMES">
     <meta name="description" content="Geex - Admin Dashboard HTML Template Pack">
     <meta name="keywords" content="Responsive, HTML5, ASP, .NET, MVC, Admin Template, Light Mode, Dark Mode, RTL Support, Customizable, PIXCELSTHEMES, Software, SaaS, Startup, Creative, Digital Product">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
 
 
     <title><?= \App\Helpers\SettingsHelper::getStoreName() ?> - Dashboard</title>

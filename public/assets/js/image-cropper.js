@@ -21,12 +21,16 @@ class ImageCropper {
         
         this.cropper = null;
         this.currentFile = null;
+        this.ready = false;
         this.init();
     }
 
     init() {
+        console.log('ImageCropper: Initializing...');
+        
         // Add Cropper.js CSS if not already loaded
         if (!document.querySelector('link[href*="cropper.min.css"]')) {
+            console.log('ImageCropper: Loading Cropper.js CSS...');
             const link = document.createElement('link');
             link.rel = 'stylesheet';
             link.href = 'https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css';
@@ -35,11 +39,34 @@ class ImageCropper {
 
         // Add Cropper.js script if not already loaded
         if (typeof Cropper === 'undefined') {
+            console.log('ImageCropper: Loading Cropper.js script...');
             const script = document.createElement('script');
             script.src = 'https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js';
-            script.onload = () => this.setupStyles();
+            script.onload = () => {
+                console.log('ImageCropper: Cropper.js script loaded successfully');
+                this.ready = true;
+                this.setupStyles();
+            };
+            script.onerror = () => {
+                // Fallback to alternative CDN
+                console.log('Primary CDN failed, trying alternative...');
+                const fallbackScript = document.createElement('script');
+                fallbackScript.src = 'https://unpkg.com/cropperjs@1.6.1/dist/cropper.min.js';
+                fallbackScript.onload = () => {
+                    console.log('ImageCropper: Fallback CDN loaded successfully');
+                    this.ready = true;
+                    this.setupStyles();
+                };
+                fallbackScript.onerror = () => {
+                    console.error('All CDNs failed to load Cropper.js');
+                    alert('Image cropper library failed to load. Please check your internet connection and refresh the page.');
+                };
+                document.head.appendChild(fallbackScript);
+            };
             document.head.appendChild(script);
         } else {
+            console.log('ImageCropper: Cropper.js already available');
+            this.ready = true;
             this.setupStyles();
         }
     }
@@ -68,10 +95,10 @@ class ImageCropper {
                 .image-cropper-container {
                     background: #ffffff;
                     border-radius: 16px;
-                    padding: 2rem;
-                    max-width: 90vw;
-                    max-height: 90vh;
-                    width: 600px;
+                    padding: 1.5rem;
+                    max-width: 80vw;
+                    max-height: 85vh;
+                    width: 500px;
                     text-align: center;
                     position: relative;
                     overflow: visible;
@@ -86,13 +113,14 @@ class ImageCropper {
 
                 .image-cropper-area {
                     width: 100%;
-                    max-height: 400px;
-                    margin: 1.5rem 0;
+                    max-height: 300px;
+                    margin: 1rem 0;
                     overflow: hidden;
                 }
 
                 .image-cropper-preview {
                     max-width: 100%;
+                    max-height: 280px;
                     height: auto;
                     display: block;
                 }
@@ -101,8 +129,8 @@ class ImageCropper {
                     display: flex;
                     flex-wrap: wrap;
                     justify-content: center;
-                    gap: 1rem;
-                    margin-top: 1.5rem;
+                    gap: 0.75rem;
+                    margin-top: 1rem;
                 }
 
                 .image-cropper-btn {
@@ -162,19 +190,27 @@ class ImageCropper {
                     .image-cropper-container {
                         padding: 1rem;
                         margin: 10px;
-                        max-height: 95vh;
+                        max-height: 85vh;
+                        width: 95vw;
+                        max-width: 95vw;
                     }
                     
                     .image-cropper-area {
-                        max-height: 300px;
+                        max-height: 250px;
+                    }
+                    
+                    .image-cropper-preview {
+                        max-height: 230px;
                     }
                     
                     .image-cropper-buttons {
                         flex-direction: column;
+                        gap: 0.5rem;
                     }
                     
                     .image-cropper-btn {
                         width: 100%;
+                        padding: 0.75rem 1rem;
                     }
                 }
             `;
@@ -189,15 +225,40 @@ class ImageCropper {
                 return;
             }
 
-            this.currentFile = file;
-            this.createModal(title);
+            // Wait for cropper to be ready
+            this.waitForReady().then(() => {
+                this.currentFile = file;
+                this.createModal(title);
+                
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    this.setupCropper(event.target.result, resolve, reject);
+                };
+                reader.onerror = () => reject(new Error('Failed to read file'));
+                reader.readAsDataURL(file);
+            }).catch(reject);
+        });
+    }
+
+    waitForReady() {
+        return new Promise((resolve) => {
+            if (this.ready && typeof Cropper !== 'undefined') {
+                resolve();
+                return;
+            }
             
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                this.setupCropper(event.target.result, resolve, reject);
-            };
-            reader.onerror = () => reject(new Error('Failed to read file'));
-            reader.readAsDataURL(file);
+            const checkInterval = setInterval(() => {
+                if (this.ready && typeof Cropper !== 'undefined') {
+                    clearInterval(checkInterval);
+                    resolve();
+                }
+            }, 100);
+            
+            // Timeout after 10 seconds
+            setTimeout(() => {
+                clearInterval(checkInterval);
+                resolve();
+            }, 10000);
         });
     }
 
@@ -212,7 +273,7 @@ class ImageCropper {
         modal.className = 'image-cropper-modal';
         modal.innerHTML = `
             <div class="image-cropper-container">
-                <button class="image-cropper-close" onclick="this.closest('.image-cropper-modal').remove()">×</button>
+                <button class="image-cropper-close">×</button>
                 <h2 class="image-cropper-header">${title}</h2>
                 <div class="image-cropper-area">
                     <img class="image-cropper-preview" src="#" alt="Image Preview">
@@ -228,6 +289,12 @@ class ImageCropper {
 
         // Store modal reference
         this.modal = modal;
+        
+        // Add close button event listener
+        const closeBtn = modal.querySelector('.image-cropper-close');
+        closeBtn.addEventListener('click', () => {
+            this.close();
+        });
     }
 
     setupCropper(imageSrc, resolve, reject) {
@@ -236,20 +303,47 @@ class ImageCropper {
 
         // Wait for image to load
         img.onload = () => {
+            console.log('Image loaded, setting up cropper...');
+            console.log('Cropper available:', typeof Cropper !== 'undefined');
+            
             // Destroy previous cropper if exists
             if (this.cropper) {
                 this.cropper.destroy();
             }
 
-            // Initialize new cropper
-            this.cropper = new Cropper(img, {
-                aspectRatio: this.options.aspectRatio,
-                viewMode: this.options.viewMode,
-                dragMode: this.options.dragMode,
-                autoCropArea: this.options.autoCropArea,
-                minCropBoxWidth: this.options.minCropBoxWidth,
-                minCropBoxHeight: this.options.minCropBoxHeight,
-            });
+            // Check if we're on mobile
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            console.log('Is mobile:', isMobile);
+            
+                        // Initialize new cropper with mobile-optimized settings
+            try {
+                this.cropper = new Cropper(img, {
+                    aspectRatio: this.options.aspectRatio,
+                    viewMode: this.options.viewMode,
+                    dragMode: this.options.dragMode,
+                    autoCropArea: this.options.autoCropArea,
+                    minCropBoxWidth: this.options.minCropBoxWidth,
+                    minCropBoxHeight: this.options.minCropBoxHeight,
+                    // Mobile-specific options
+                    touchDragZoom: true,
+                    wheelZoomRatio: isMobile ? 0.1 : 0.1,
+                    zoomOnTouch: true,
+                    zoomOnWheel: true,
+                    // Better mobile responsiveness
+                    responsive: true,
+                    restore: false,
+                    center: true,
+                    highlight: false,
+                    cropBoxMovable: true,
+                    cropBoxResizable: true,
+                    toggleDragModeOnDblclick: false
+                });
+                console.log('Cropper initialized successfully');
+            } catch (error) {
+                console.error('Error initializing cropper:', error);
+                reject(error);
+                return;
+            }
 
             // Setup button handlers
             this.setupButtonHandlers(resolve, reject);
